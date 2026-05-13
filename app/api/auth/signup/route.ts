@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { SignupService } from "@/lib/services/auth/signup-service"
 import { ServiceError } from "@/lib/services/base-service"
+import { getCrawlerConfig } from "@/lib/services/admin/get-crawler-config-service"
 
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -11,6 +12,11 @@ const signupSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const regEnabled = await getCrawlerConfig("registrationEnabled")
+    if (regEnabled !== "true") {
+      return NextResponse.json({ error: "Registration is currently disabled" }, { status: 403 })
+    }
+
     const body = await request.json()
     const parsed = signupSchema.safeParse(body)
 

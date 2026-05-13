@@ -17,8 +17,9 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
         await connectDB()
-        const user = await User.findOne({ email: credentials.email.toLowerCase() }).select("+password")
+        const user = await User.findOne({ email: credentials.email.toLowerCase() }).select("+password +disabled")
         if (!user) return null
+        if (user.disabled) return null
         const valid = await bcrypt.compare(credentials.password, user.password)
         if (!valid) return null
         return { id: user._id.toString(), email: user.email, name: user.name }

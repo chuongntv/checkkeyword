@@ -43,7 +43,7 @@ const adminSubItems = [
   { title: "Users", href: "/admin/users", icon: Users },
   { title: "Workspaces", href: "/admin/workspaces", icon: Building2 },
   { title: "Proxies", href: "/admin/proxies", icon: Globe },
-  { title: "Crawler Config", href: "/admin/crawler-config", icon: Settings2 },
+  { title: "Site Config", href: "/admin/crawler-config", icon: Settings2 },
 ]
 
 interface AppSidebarProps {
