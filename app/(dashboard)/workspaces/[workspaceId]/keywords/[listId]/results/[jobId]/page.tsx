@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PositionTrendBadge } from "@/components/results/position-trend-badge"
 import { LinksExpandable } from "@/components/results/links-expandable"
+import { ExpandableList } from "@/components/results/expandable-list"
 import { CrawlJobHistory } from "@/components/results/crawl-job-history"
 import { Play, Download } from "lucide-react"
 import {
@@ -66,9 +67,9 @@ export default function JobResultsPage({
 
   function handleExportCSV() {
     const rows = [
-      ["#", "Từ khóa", "Vị trí", "Vị trí trước", "Xu hướng", "Tên miền"].join(","),
+      ["#", "Từ khóa", "Vị trí", "Vị trí trước", "Xu hướng", "Tên miền", "Links"].join(","),
       ...results.map((r, i) =>
-        [i + 1, `"${r.keyword}"`, r.position ?? "-", r.previousPosition ?? "-", r.trend, `"${r.domains.join("; ")}"`].join(",")
+        [i + 1, `"${r.keyword}"`, r.position ?? "-", r.previousPosition ?? "-", r.trend, `"${r.domains.join("; ")}"`, `"${r.links.join("; ")}"`].join(",")
       ),
     ]
     const blob = new Blob([rows.join("\n")], { type: "text/csv" })
@@ -140,6 +141,7 @@ export default function JobResultsPage({
                     <TableHead className="w-32">Vị trí</TableHead>
                     <TableHead className="w-32">Trước đó</TableHead>
                     <TableHead>Tên miền</TableHead>
+                    <TableHead>Links</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -156,6 +158,7 @@ export default function JobResultsPage({
                       </TableCell>
                       <TableCell className="text-muted-foreground">{r.previousPosition ?? "—"}</TableCell>
                       <TableCell><LinksExpandable domains={r.domains} /></TableCell>
+                      <TableCell><ExpandableList items={r.links} /></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

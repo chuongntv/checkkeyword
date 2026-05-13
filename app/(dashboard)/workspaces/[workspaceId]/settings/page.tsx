@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 
 type WorkspaceDetail = {
-  id: string; name: string; domain: string; role: string; memberCount: number; createdAt: string
+  id: string; name: string; domain: string; role: string; isAdmin: boolean; memberCount: number; createdAt: string
 }
 
 type Member = { userId: string; email: string; name: string; role: string }
@@ -45,7 +45,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
     await fetch(`/api/workspaces/${workspaceId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, domain }),
+      body: JSON.stringify({ name, ...(ws?.isAdmin ? { domain } : {}) }),
     })
     setSaving(false)
     fetchWorkspace()
@@ -102,7 +102,8 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Tên miền</label>
-                  <Input value={domain} onChange={(e) => setDomain(e.target.value)} required />
+                  <Input value={domain} onChange={(e) => setDomain(e.target.value)} required disabled={!ws.isAdmin} />
+                  {!ws.isAdmin && <p className="text-xs text-muted-foreground">Chỉ quản trị viên mới có thể thay đổi tên miền</p>}
                 </div>
                 <Button type="submit" disabled={saving}>{saving ? "Đang lưu..." : "Lưu thay đổi"}</Button>
               </form>
