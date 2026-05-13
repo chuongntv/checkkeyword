@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -50,12 +51,6 @@ export default function WorkspacesPage() {
     setCreating(false)
   }
 
-  const roleColors: Record<string, string> = {
-    owner: "default",
-    editor: "secondary",
-    viewer: "outline",
-  }
-
   if (loading) return <p className="text-muted-foreground">Loading workspaces...</p>
 
   return (
@@ -63,7 +58,7 @@ export default function WorkspacesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Workspaces</h1>
-          <p className="text-muted-foreground mt-1">Each workspace tracks one domain</p>
+          <p className="text-muted-foreground mt-1">{workspaces.length} workspaces</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button />}>
@@ -102,33 +97,39 @@ export default function WorkspacesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {workspaces.map((ws) => (
-            <Card key={ws.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = `/workspaces/${ws.id}/keywords`}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{ws.name}</CardTitle>
-                  <Badge variant={roleColors[ws.role] as any}>{ws.role}</Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">{ws.domain}</p>
-                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                  <Link href={`/workspaces/${ws.id}/keywords`}>
-                    <Button variant="default" size="sm">
-                      <List className="h-3 w-3 mr-1" />Keywords
-                    </Button>
-                  </Link>
-                  <Link href={`/workspaces/${ws.id}/settings`}>
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-3 w-3 mr-1" />Settings
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Domain</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {workspaces.map((ws) => (
+                  <TableRow key={ws.id} className="cursor-pointer" onClick={() => window.location.href = `/workspaces/${ws.id}/keywords`}>
+                    <TableCell className="font-medium">{ws.name}</TableCell>
+                    <TableCell className="text-muted-foreground">{ws.domain}</TableCell>
+                    <TableCell><Badge variant={ws.role === "owner" ? "default" : "outline"}>{ws.role}</Badge></TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
+                        <Link href={`/workspaces/${ws.id}/keywords`}>
+                          <Button variant="default" size="sm"><List className="h-3 w-3 mr-1" />Keywords</Button>
+                        </Link>
+                        <Link href={`/workspaces/${ws.id}/settings`}>
+                          <Button variant="outline" size="sm"><Settings className="h-3 w-3 mr-1" />Settings</Button>
+                        </Link>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
     </div>
   )
