@@ -96,6 +96,16 @@ export async function crawlKeyword(
         while (allDomains.length < domainsTarget && pageNum <= MAX_PAGES) {
           await solveCaptchaIfPresent(page)
           const { links, domains } = await extractSerpResults(page)
+
+          // Debug: dump page snippet if no results found
+          if (links.length === 0 && pageNum === 1) {
+            const title = await page.title().catch(() => "?")
+            const url = page.url()
+            const snippet = await page.evaluate(() => document.body?.innerText?.slice(0, 500) ?? "empty")
+            console.log(`[Crawler] DEBUG "${keyword}" — title: ${title}, url: ${url}`)
+            console.log(`[Crawler] DEBUG snippet: ${snippet.slice(0, 300)}`)
+          }
+
           allLinks = [...new Set([...allLinks, ...links])]
           allDomains = [...new Set([...allDomains, ...domains])]
 
