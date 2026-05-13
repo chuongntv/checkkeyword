@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState, use } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Plus, List, Play, Trash2, BarChart3 } from "lucide-react"
 import { CrawlStatusBadge } from "@/components/keyword-list/crawl-status-badge"
 import { CountrySelector } from "@/components/keyword-list/country-selector"
 import { KeywordTextarea } from "@/components/keyword-list/keyword-textarea"
-import { Plus, Play, Trash2, List } from "lucide-react"
 
 type KeywordList = {
   id: string; name: string; keywordCount: number; countries: string[]
@@ -81,7 +82,7 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Keyword Lists</h1>
-          <p className="text-muted-foreground mt-1">Manage keyword groups for SERP tracking</p>
+          <p className="text-muted-foreground mt-1">{lists.length} lists</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button />}>
@@ -124,37 +125,54 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {lists.map((list) => (
-            <Card key={list.id}>
-              <CardContent className="py-4 flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">{list.name}</h3>
-                  <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                    <span>{list.keywordCount} keywords</span>
-                    <span>·</span>
-                    <span>{list.countries.join(", ")}</span>
-                    <span>·</span>
-                    <CrawlStatusBadge status={(list.latestCrawlJob?.status as any) ?? null} />
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleTriggerCrawl(list.id)}
-                    disabled={list.latestCrawlJob?.status === "pending" || list.latestCrawlJob?.status === "running"}
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Keywords</TableHead>
+                  <TableHead>Countries</TableHead>
+                  <TableHead>Last Crawl</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {lists.map((list) => (
+                  <TableRow
+                    key={list.id}
+                    className="cursor-pointer"
+                    onClick={() => window.location.href = `/workspaces/${workspaceId}/keywords/${list.id}/results`}
                   >
-                    <Play className="h-3 w-3 mr-1" />Crawl
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(list.id)}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                    <TableCell className="font-medium">{list.name}</TableCell>
+                    <TableCell>{list.keywordCount}</TableCell>
+                    <TableCell>{list.countries.join(", ")}</TableCell>
+                    <TableCell>
+                      <CrawlStatusBadge status={(list.latestCrawlJob?.status as any) ?? null} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
+                        <Link href={`/workspaces/${workspaceId}/keywords/${list.id}/results`}>
+                          <Button variant="default" size="sm"><BarChart3 className="h-3 w-3 mr-1" />Results</Button>
+                        </Link>
+                        <Button
+                          variant="outline" size="sm"
+                          onClick={() => handleTriggerCrawl(list.id)}
+                          disabled={list.latestCrawlJob?.status === "pending" || list.latestCrawlJob?.status === "running"}
+                        >
+                          <Play className="h-3 w-3 mr-1" />Crawl
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(list.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

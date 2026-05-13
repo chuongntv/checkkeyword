@@ -4,8 +4,9 @@ import { getProxiesForCountry, getRandomProxy } from "./proxy-reader"
 import { browserProfilePool } from "./browser-profile-pool"
 import { solveCaptchaIfPresent } from "./captcha-solver"
 import { extractSerpResults, findDomainPosition } from "./extract-serp-results"
+import { CrawlerConfig } from "../../models/crawler-config.model"
 
-const DOMAINS_TARGET = 50
+const DEFAULT_DOMAINS_TARGET = 100
 const MAX_PAGES = 30
 const MAX_RETRIES = 30
 const RETRY_DELAY = 15000
@@ -22,6 +23,15 @@ const USER_AGENTS = [
 
 function getRandomUserAgent() { return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)] }
 
+async function getDomainsTarget(): Promise<number> {
+  try {
+    const config = await CrawlerConfig.findOne({ key: "maxDomainsTarget" }).lean()
+    return config ? parseInt(config.value, 10) || DEFAULT_DOMAINS_TARGET : DEFAULT_DOMAINS_TARGET
+  } catch {
+    return DEFAULT_DOMAINS_TARGET
+  }
+}
+
 export type CrawlResult = {
   position: number | null
   links: string[]
@@ -37,6 +47,7 @@ export async function crawlKeyword(
 ): Promise<CrawlResult> {
   const googleUrl = buildGoogleUrl(keyword, country)
   const jobKey = `crawl:${crawlJobId}:${keyword}`
+  const domainsTarget = await getDomainsTarget()
 
   let lastError: any
   let browser: any = null
@@ -81,7 +92,7 @@ export async function crawlKeyword(
         let allDomains: string[] = []
         let pageNum = 1
 
-        while (allDomains.length < DOMAINS_TARGET && pageNum <= MAX_PAGES) {
+        while (allDomains.length < domainsTarget && pageNum <= MAX_PAGES) {
           await solveCaptchaIfPresent(page)
           const { links, domains } = await extractSerpResults(page)
           allLinks = [...new Set([...allLinks, ...links])]

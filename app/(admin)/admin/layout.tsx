@@ -9,6 +9,7 @@ const adminTabs = [
   { title: "Users", href: "/admin/users" },
   { title: "Workspaces", href: "/admin/workspaces" },
   { title: "Proxies", href: "/admin/proxies" },
+  { title: "Crawler Config", href: "/admin/crawler-config" },
 ]
 
 export default function AdminNavLayout({ children }: { children: React.ReactNode }) {
