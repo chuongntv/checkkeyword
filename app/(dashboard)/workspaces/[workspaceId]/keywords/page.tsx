@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Plus, List, Play, Trash2, BarChart3 } from "lucide-react"
 import { CrawlStatusBadge } from "@/components/keyword-list/crawl-status-badge"
@@ -19,7 +20,7 @@ import { CountrySelector } from "@/components/keyword-list/country-selector"
 import { KeywordTextarea } from "@/components/keyword-list/keyword-textarea"
 
 type KeywordList = {
-  id: string; name: string; keywordCount: number; countries: string[]
+  id: string; name: string; keywords: string[]; keywordCount: number; countries: string[]
   latestCrawlJob: { id: string; status: string; createdAt: string } | null
 }
 
@@ -145,7 +146,16 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
                     onClick={() => window.location.href = `/workspaces/${workspaceId}/keywords/${list.id}/results`}
                   >
                     <TableCell className="font-medium">{list.name}</TableCell>
-                    <TableCell>{list.keywordCount}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1 max-w-xs">
+                        {list.keywords.slice(0, 5).map((kw) => (
+                          <Badge key={kw} variant="secondary" className="text-xs">{kw}</Badge>
+                        ))}
+                        {list.keywords.length > 5 && (
+                          <Badge variant="outline" className="text-xs">+{list.keywords.length - 5} more</Badge>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{list.countries.join(", ")}</TableCell>
                     <TableCell>
                       <CrawlStatusBadge status={(list.latestCrawlJob?.status as any) ?? null} />

@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/db/mongoose"
 
 type Input = { workspaceId: string }
 type Output = {
-  id: string; name: string; keywordCount: number; countries: string[]; createdAt: Date
+  id: string; name: string; keywords: string[]; keywordCount: number; countries: string[]; createdAt: Date
   latestCrawlJob: { id: string; status: string; createdAt: string } | null
 }[]
 
@@ -28,6 +28,7 @@ export class GetKeywordListsService extends BaseService<Input, Output> {
     return lists.map((kl) => ({
       id: kl._id.toString(),
       name: kl.name,
+      keywords: kl.keywords,
       keywordCount: kl.keywords.length,
       countries: kl.countries,
       createdAt: kl.createdAt,
