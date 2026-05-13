@@ -45,7 +45,7 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setCreating(true)
-    const keywords = [...new Set(newKeywords.split(",").map((k) => k.trim()).filter(Boolean))]
+    const keywords = [...new Set(newKeywords.split("\n").map((k) => k.trim()).filter(Boolean))]
     const res = await fetch(`/api/workspaces/${workspaceId}/keyword-lists`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -99,7 +99,7 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
                 <Input placeholder="My keywords" value={newName} onChange={(e) => setNewName(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Keywords (comma-separated)</label>
+                <label className="text-sm font-medium">Keywords (one per line)</label>
                 <KeywordTextarea value={newKeywords} onChange={setNewKeywords} />
               </div>
               <div className="space-y-2">
