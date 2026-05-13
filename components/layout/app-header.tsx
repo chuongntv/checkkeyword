@@ -26,14 +26,11 @@ export function AppHeader() {
       <div className="flex-1" />
       {session?.user && (
         <DropdownMenu>
-          <DropdownMenuTrigger
-            className="rounded-full outline-none"
-            render={
-              <Avatar className="h-8 w-8 cursor-pointer">
-                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-              </Avatar>
-            }
-          />
+          <DropdownMenuTrigger className="rounded-full outline-none">
+            <Avatar className="h-8 w-8 cursor-pointer">
+              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <div className="px-2 py-1.5 text-sm font-medium">
               {session.user.email}

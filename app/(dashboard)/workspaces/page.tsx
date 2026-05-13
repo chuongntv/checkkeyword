@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Plus, Building2, Settings } from "lucide-react"
+import { Plus, Building2, Settings, List } from "lucide-react"
 
 type Workspace = { id: string; name: string; domain: string; role: string }
 
@@ -104,7 +104,7 @@ export default function WorkspacesPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {workspaces.map((ws) => (
-            <Card key={ws.id} className="hover:shadow-md transition-shadow">
+            <Card key={ws.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => window.location.href = `/workspaces/${ws.id}/keywords`}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">{ws.name}</CardTitle>
@@ -113,7 +113,12 @@ export default function WorkspacesPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">{ws.domain}</p>
-                <div className="flex gap-2">
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                  <Link href={`/workspaces/${ws.id}/keywords`}>
+                    <Button variant="default" size="sm">
+                      <List className="h-3 w-3 mr-1" />Keywords
+                    </Button>
+                  </Link>
                   <Link href={`/workspaces/${ws.id}/settings`}>
                     <Button variant="outline" size="sm">
                       <Settings className="h-3 w-3 mr-1" />Settings
