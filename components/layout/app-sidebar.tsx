@@ -23,7 +23,6 @@ import {
 const mainNavItems = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Workspaces", href: "/workspaces", icon: Building2 },
-  { title: "SERP Tracker", href: "/serp-tracker", icon: Search },
 ]
 
 const adminNavItems = [
