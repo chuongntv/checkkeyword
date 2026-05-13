@@ -157,8 +157,8 @@ mkdir -p worker/user_data
 mongosh sitecheck --eval '
 db.users.insertOne({
   name: "Admin",
-  email: "admin@yourdomain.com",
-  password: "'$(node -e "const bcrypt=require('bcryptjs');console.log(bcrypt.hashSync('CHANGE_ME_PASSWORD',10))")'",
+  email: "chuongntv.1409@gmail.com",
+  password: "'$(node -e "const bcrypt=require('bcryptjs');console.log(bcrypt.hashSync('Password@123',10))")'",
   isAdmin: true,
   disabled: false,
   createdAt: new Date(),
