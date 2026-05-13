@@ -18,4 +18,5 @@ export const CrawlerConfig: Model<ICrawlerConfig> =
 export const DEFAULT_CONFIG: Record<string, string> = {
   maxDomainsTarget: "100",
   registrationEnabled: "true",
+  jobTimeoutMinutes: "10",
 }

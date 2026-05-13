@@ -6,7 +6,7 @@ import { connectDB } from "@/lib/db/mongoose"
 import { Queue } from "bullmq"
 import { getRedis } from "@/lib/db/redis"
 
-type Input = { keywordListId: string; workspaceId: string; userId: string }
+type Input = { keywordListId: string; workspaceId: string; userId: string; killExisting?: boolean }
 type Output = { crawlJobId: string }
 
 export class TriggerCrawlService extends BaseService<Input, Output> {
@@ -14,12 +14,25 @@ export class TriggerCrawlService extends BaseService<Input, Output> {
     try {
       await connectDB()
 
-      // Prevent double-trigger
       const running = await CrawlJob.findOne({
         keywordListId: input.keywordListId,
         status: { $in: ["pending", "running"] },
       })
-      if (running) throw new ServiceError("A crawl is already running for this list", undefined, "ALREADY_RUNNING")
+
+      if (running) {
+        if (!input.killExisting) {
+          throw new ServiceError("A crawl is already running for this list", undefined, "ALREADY_RUNNING")
+        }
+        // Kill the old job: mark failed in DB and cancel in BullMQ
+        await CrawlJob.findByIdAndUpdate(running._id, {
+          status: "failed",
+          completedAt: new Date(),
+        })
+        if (running.queueJobId) {
+          const queue = new Queue("serp-crawl", { connection: getRedis() })
+          await queue.remove(running.queueJobId)
+        }
+      }
 
       const list = await KeywordList.findById(input.keywordListId)
       const workspace = await Workspace.findById(input.workspaceId).select("domain")

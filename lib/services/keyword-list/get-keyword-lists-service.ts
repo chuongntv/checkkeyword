@@ -2,6 +2,7 @@ import { BaseService } from "@/lib/services/base-service"
 import { KeywordList } from "@/models/keyword-list.model"
 import { CrawlJob } from "@/models/crawl-job.model"
 import { connectDB } from "@/lib/db/mongoose"
+import { resolveJobStatus } from "@/lib/services/crawl-job/resolve-job-status"
 
 type Input = { workspaceId: string }
 type Output = {
@@ -25,20 +26,21 @@ export class GetKeywordListsService extends BaseService<Input, Output> {
       if (!latestJobMap.has(key)) latestJobMap.set(key, job)
     }
 
-    return lists.map((kl) => ({
-      id: kl._id.toString(),
-      name: kl.name,
-      keywords: kl.keywords,
-      keywordCount: kl.keywords.length,
-      countries: kl.countries,
-      createdAt: kl.createdAt,
-      latestCrawlJob: latestJobMap.has(kl._id.toString())
-        ? {
-            id: latestJobMap.get(kl._id.toString())._id.toString(),
-            status: latestJobMap.get(kl._id.toString()).status,
-            createdAt: latestJobMap.get(kl._id.toString()).createdAt,
-          }
-        : null,
-    }))
+    const results = []
+    for (const kl of lists) {
+      const job = latestJobMap.get(kl._id.toString())
+      results.push({
+        id: kl._id.toString(),
+        name: kl.name,
+        keywords: kl.keywords,
+        keywordCount: kl.keywords.length,
+        countries: kl.countries,
+        createdAt: kl.createdAt,
+        latestCrawlJob: job
+          ? { id: job._id.toString(), status: await resolveJobStatus(job), createdAt: job.createdAt }
+          : null,
+      })
+    }
+    return results
   }
 }

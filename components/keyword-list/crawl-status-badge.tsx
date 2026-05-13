@@ -1,12 +1,13 @@
 import { Badge } from "@/components/ui/badge"
 
-type Status = "pending" | "running" | "done" | "failed"
+type Status = "pending" | "running" | "done" | "failed" | "timeout"
 
 const statusConfig: Record<Status, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pending: { label: "Đang chờ", variant: "secondary" },
   running: { label: "Đang chạy...", variant: "default" },
   done: { label: "Hoàn thành", variant: "outline" },
   failed: { label: "Thất bại", variant: "destructive" },
+  timeout: { label: "Quá hạn", variant: "destructive" },
 }
 
 export function CrawlStatusBadge({ status }: { status: Status | null }) {

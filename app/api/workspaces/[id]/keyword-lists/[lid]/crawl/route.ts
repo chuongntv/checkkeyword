@@ -3,17 +3,21 @@ import { requireWorkspaceAccess } from "@/lib/auth/workspace-guard"
 import { verifyKeywordListBelongsToWorkspace } from "@/lib/auth/verify-keyword-list-owner"
 import { TriggerCrawlService } from "@/lib/services/keyword-list/trigger-crawl-service"
 
-export async function POST(_req: Request, { params }: { params: Promise<{ id: string; lid: string }> }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string; lid: string }> }) {
   try {
     const { id, lid } = await params
     const { session } = await requireWorkspaceAccess(id, "editor")
     await verifyKeywordListBelongsToWorkspace(lid, id)
+
+    const url = new URL(req.url)
+    const killExisting = url.searchParams.get("killExisting") === "true"
 
     const service = new TriggerCrawlService()
     const result = await service.call({
       keywordListId: lid,
       workspaceId: id,
       userId: session.user.id,
+      killExisting,
     })
 
     return NextResponse.json(result, { status: 201 })

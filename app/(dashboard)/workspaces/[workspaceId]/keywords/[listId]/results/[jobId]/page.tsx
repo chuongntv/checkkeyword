@@ -111,7 +111,7 @@ export default function JobResultsPage({
             <Button
               size="sm"
               onClick={async () => {
-                await fetch(`/api/workspaces/${workspaceId}/keyword-lists/${listId}/crawl`, { method: "POST" })
+                await fetch(`/api/workspaces/${workspaceId}/keyword-lists/${listId}/crawl?killExisting=true`, { method: "POST" })
               }}
             >
               <Play className="h-3 w-3 mr-1" />Crawl mới

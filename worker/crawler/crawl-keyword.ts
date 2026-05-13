@@ -98,7 +98,7 @@ export async function crawlKeyword(
           allLinks = [...new Set([...allLinks, ...links])]
           allDomains = [...new Set([...allDomains, ...domains])]
 
-          if (allDomains.length >= DOMAINS_TARGET) break
+          if (allDomains.length >= domainsTarget) break
 
           try {
             const nextButton = await page.$("#pnnext")
