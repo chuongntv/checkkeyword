@@ -1,3 +1,4 @@
+import "dotenv/config"
 import { connectDB } from "../lib/db/mongoose"
 import { startSerpWorker } from "./serp-crawl-worker"
 

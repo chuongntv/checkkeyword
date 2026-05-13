@@ -53,12 +53,10 @@ export async function crawlKeyword(
         const { browser: _browser, page } = await connect({
           headless: true,
           turnstile: true,
-          disableXvfb: false,
-          ignoreAllFlags: false,
+          disableXvfb: true,
+          ignoreAllFlags: true,
           customConfig: {
             chromePath: CHROME_PATH,
-            ignoreDefaultFlags: false,
-            userDataDir: profile.dir,
           },
           args: ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--disable-gpu"],
           connectOption: { defaultViewport: null, protocolTimeout: 180000 },
@@ -74,8 +72,8 @@ export async function crawlKeyword(
 
         try { await page.setUserAgent(getRandomUserAgent()) } catch {}
 
-        await page.goto(googleUrl, { waitUntil: "networkidle0", timeout: 120000 })
-        await sleep(20000)
+        await page.goto(googleUrl, { waitUntil: "networkidle2", timeout: 60000 })
+        await sleep(5000)
         await solveCaptchaIfPresent(page)
 
         // Crawl pages
