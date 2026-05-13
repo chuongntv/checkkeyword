@@ -87,12 +87,12 @@ export function AppSidebar({ isAdmin = false }: AppSidebarProps) {
               <SidebarMenu>
                 <Collapsible defaultOpen={pathname.startsWith("/admin")} className="group/collapsible">
                   <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton isActive={pathname.startsWith("/admin")}>
-                        <Shield className="h-4 w-4" />
-                        <span>Admin Panel</span>
-                        <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                      </SidebarMenuButton>
+                    <CollapsibleTrigger
+                      render={<SidebarMenuButton isActive={pathname.startsWith("/admin")} />}
+                    >
+                      <Shield className="h-4 w-4" />
+                      <span>Admin Panel</span>
+                      <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
