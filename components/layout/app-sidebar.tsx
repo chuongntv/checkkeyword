@@ -7,6 +7,10 @@ import {
   Building2,
   Shield,
   Search,
+  Users,
+  Globe,
+  Settings2,
+  Cog,
 } from "lucide-react"
 import {
   Sidebar,
@@ -18,15 +22,28 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+import { ChevronRight } from "lucide-react"
 
 const mainNavItems = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Workspaces", href: "/workspaces", icon: Building2 },
 ]
 
-const adminNavItems = [
-  { title: "Admin Panel", href: "/admin", icon: Shield },
+const adminSubItems = [
+  { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { title: "Users", href: "/admin/users", icon: Users },
+  { title: "Workspaces", href: "/admin/workspaces", icon: Building2 },
+  { title: "Proxies", href: "/admin/proxies", icon: Globe },
+  { title: "Crawler Config", href: "/admin/crawler-config", icon: Settings2 },
 ]
 
 interface AppSidebarProps {
@@ -68,17 +85,32 @@ export function AppSidebar({ isAdmin = false }: AppSidebarProps) {
             <SidebarGroupLabel>Admin</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminNavItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      isActive={pathname.startsWith(item.href)}
-                      render={<Link href={item.href} />}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </SidebarMenuButton>
+                <Collapsible defaultOpen={pathname.startsWith("/admin")} className="group/collapsible">
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton isActive={pathname.startsWith("/admin")}>
+                        <Shield className="h-4 w-4" />
+                        <span>Admin Panel</span>
+                        <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {adminSubItems.map((item) => (
+                          <SidebarMenuSubItem key={item.href}>
+                            <SidebarMenuSubButton
+                              isActive={pathname === item.href}
+                              render={<Link href={item.href} />}
+                            >
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
                   </SidebarMenuItem>
-                ))}
+                </Collapsible>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
