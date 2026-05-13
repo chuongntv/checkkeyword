@@ -9,7 +9,7 @@ export async function GET() {
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     const service = new GetWorkspacesService()
-    const workspaces = await service.call({ userId: session.user.id })
+    const workspaces = await service.call({ userId: session.user.id, isAdmin: session.user.isAdmin })
     return NextResponse.json(workspaces)
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })

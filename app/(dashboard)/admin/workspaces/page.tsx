@@ -16,18 +16,18 @@ export default function AdminWorkspacesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">All Workspaces</h1>
+      <h1 className="text-2xl font-bold mb-6">Tất cả Workspace</h1>
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Domain</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Members</TableHead>
-                <TableHead>Lists</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Tên</TableHead>
+                <TableHead>Tên miền</TableHead>
+                <TableHead>Chủ sở hữu</TableHead>
+                <TableHead>Thành viên</TableHead>
+                <TableHead>Danh sách</TableHead>
+                <TableHead>Ngày tạo</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
