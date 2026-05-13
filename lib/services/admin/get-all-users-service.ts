@@ -2,7 +2,7 @@ import { BaseService } from "@/lib/services/base-service"
 import { User } from "@/models/user.model"
 import { connectDB } from "@/lib/db/mongoose"
 
-type Output = { id: string; name: string; email: string; workspaceCount: number; createdAt: string }[]
+type Output = { id: string; name: string; email: string; disabled: boolean; workspaceCount: number; createdAt: string }[]
 
 export class GetAllUsersService extends BaseService<void, Output> {
   async call(): Promise<Output> {
@@ -17,6 +17,7 @@ export class GetAllUsersService extends BaseService<void, Output> {
       id: u._id.toString(),
       name: u.name,
       email: u.email,
+      disabled: u.disabled ?? false,
       workspaceCount: u.workspaceCount,
       createdAt: u.createdAt.toISOString(),
     }))
