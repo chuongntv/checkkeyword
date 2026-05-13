@@ -57,6 +57,7 @@ export async function crawlKeyword(
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       const proxies = await getProxiesForCountry(country)
       const proxy = getRandomProxy(proxies)
+      console.log(`[Crawler] Proxy for "${keyword}": ${proxy ? proxy.host + ':' + proxy.port : 'none (direct)'}`)
 
       try {
         console.log(`[Crawler] Attempt ${attempt}/${MAX_RETRIES} - "${keyword}" (${country})`)
@@ -115,6 +116,7 @@ export async function crawlKeyword(
         }
 
         const position = findDomainPosition(allLinks, domain)
+        console.log(`[Crawler] "${keyword}" — found ${allLinks.length} links, ${allDomains.length} domains, target: ${domain}, position: ${position ?? "not found"}`)
 
         await browser.close()
         browser = null
