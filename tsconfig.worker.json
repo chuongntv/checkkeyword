@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./worker-dist",
+    "rootDir": ".",
+    "module": "commonjs",
+    "noEmit": false,
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["worker/**/*", "lib/**/*", "models/**/*", "types/**/*"],
+  "exclude": ["node_modules", ".next", "app"]
+}
