@@ -31,7 +31,7 @@ export default function SignupPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || "Signup failed")
+        setError(data.error || "Đăng ký thất bại")
         return
       }
 
@@ -49,7 +49,7 @@ export default function SignupPage() {
         router.refresh()
       }
     } catch {
-      setError("Something went wrong")
+      setError("Đã xảy ra lỗi")
     } finally {
       setLoading(false)
     }
@@ -58,8 +58,8 @@ export default function SignupPage() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-2xl">Create Account</CardTitle>
-        <CardDescription>Sign up to start tracking your SERP rankings</CardDescription>
+        <CardTitle className="text-2xl">Tạo tài khoản</CardTitle>
+        <CardDescription>Đăng ký để bắt đầu theo dõi thứ hạng SERP</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,11 +69,11 @@ export default function SignupPage() {
             </div>
           )}
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium">Name</label>
+            <label htmlFor="name" className="text-sm font-medium">Họ tên</label>
             <Input
               id="name"
               type="text"
-              placeholder="John Doe"
+              placeholder="Nguyễn Văn A"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -92,7 +92,7 @@ export default function SignupPage() {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">Password</label>
+            <label htmlFor="password" className="text-sm font-medium">Mật khẩu</label>
             <Input
               id="password"
               type="password"
@@ -104,12 +104,12 @@ export default function SignupPage() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating account..." : "Create Account"}
+            {loading ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            Đã có tài khoản?{" "}
             <Link href="/login" className="text-primary underline">
-              Sign in
+              Đăng nhập
             </Link>
           </p>
         </form>

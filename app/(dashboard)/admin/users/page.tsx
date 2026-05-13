@@ -55,7 +55,7 @@ export default function AdminUsersPage() {
       fetchUsers()
     } else {
       const data = await res.json()
-      setError(data.error || "Failed to create user")
+      setError(data.error || "Tạo người dùng thất bại")
     }
     setCreating(false)
   }
@@ -69,23 +69,23 @@ export default function AdminUsersPage() {
     if (res.ok) fetchUsers()
   }
 
-  if (loading) return <p className="text-muted-foreground">Loading...</p>
+  if (loading) return <p className="text-muted-foreground">Đang tải...</p>
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Users</h1>
+        <h1 className="text-2xl font-bold">Người dùng</h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button />}>
-            <Plus className="h-4 w-4 mr-2" />Create User
+            <Plus className="h-4 w-4 mr-2" />Tạo người dùng
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create User</DialogTitle>
+              <DialogTitle>Tạo người dùng</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
+                <label className="text-sm font-medium">Họ tên</label>
                 <Input value={newName} onChange={(e) => setNewName(e.target.value)} required />
               </div>
               <div className="space-y-2">
@@ -93,13 +93,13 @@ export default function AdminUsersPage() {
                 <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Password</label>
+                <label className="text-sm font-medium">Mật khẩu</label>
                 <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={creating}>
                 {creating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {creating ? "Creating..." : "Create User"}
+                {creating ? "Đang tạo..." : "Tạo người dùng"}
               </Button>
             </form>
           </DialogContent>
@@ -111,12 +111,12 @@ export default function AdminUsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Họ tên</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Workspaces</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Workspace</TableHead>
+                <TableHead>Ngày tham gia</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -126,7 +126,7 @@ export default function AdminUsersPage() {
                   <TableCell>{u.email}</TableCell>
                   <TableCell>
                     <Badge variant={u.disabled ? "destructive" : "default"}>
-                      {u.disabled ? "Disabled" : "Active"}
+                      {u.disabled ? "Đã khóa" : "Hoạt động"}
                     </Badge>
                   </TableCell>
                   <TableCell>{u.workspaceCount}</TableCell>
@@ -138,8 +138,8 @@ export default function AdminUsersPage() {
                       onClick={() => handleToggleDisable(u.id, u.disabled)}
                     >
                       {u.disabled
-                        ? <><UserCheck className="h-3 w-3 mr-1" />Enable</>
-                        : <><UserX className="h-3 w-3 mr-1" />Disable</>
+                        ? <><UserCheck className="h-3 w-3 mr-1" />Mở khóa</>
+                        : <><UserX className="h-3 w-3 mr-1" />Khóa</>
                       }
                     </Button>
                   </TableCell>

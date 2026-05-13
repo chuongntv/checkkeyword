@@ -51,34 +51,34 @@ export default function WorkspacesPage() {
     setCreating(false)
   }
 
-  if (loading) return <p className="text-muted-foreground">Loading workspaces...</p>
+  if (loading) return <p className="text-muted-foreground">Đang tải...</p>
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Workspaces</h1>
-          <p className="text-muted-foreground mt-1">{workspaces.length} workspaces</p>
+          <h1 className="text-2xl font-bold">Workspace</h1>
+          <p className="text-muted-foreground mt-1">{workspaces.length} workspace</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button />}>
-            <Plus className="h-4 w-4 mr-2" />New Workspace
+            <Plus className="h-4 w-4 mr-2" />Tạo workspace
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create Workspace</DialogTitle>
+              <DialogTitle>Tạo Workspace</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
-                <Input placeholder="My Website" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+                <label className="text-sm font-medium">Tên</label>
+                <Input placeholder="Trang web của tôi" value={newName} onChange={(e) => setNewName(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Domain</label>
+                <label className="text-sm font-medium">Tên miền</label>
                 <Input placeholder="example.com" value={newDomain} onChange={(e) => setNewDomain(e.target.value)} required />
               </div>
               <Button type="submit" className="w-full" disabled={creating}>
-                {creating ? "Creating..." : "Create Workspace"}
+                {creating ? "Đang tạo..." : "Tạo Workspace"}
               </Button>
             </form>
           </DialogContent>
@@ -89,10 +89,10 @@ export default function WorkspacesPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="font-semibold mb-1">No workspaces yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">Create your first workspace to start tracking SERP rankings</p>
+            <h3 className="font-semibold mb-1">Chưa có workspace</h3>
+            <p className="text-sm text-muted-foreground mb-4">Tạo workspace đầu tiên để bắt đầu theo dõi thứ hạng SERP</p>
             <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />Create Workspace
+              <Plus className="h-4 w-4 mr-2" />Tạo Workspace
             </Button>
           </CardContent>
         </Card>
@@ -102,10 +102,10 @@ export default function WorkspacesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Domain</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Tên</TableHead>
+                  <TableHead>Tên miền</TableHead>
+                  <TableHead>Vai trò</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -117,10 +117,10 @@ export default function WorkspacesPage() {
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
                         <Link href={`/workspaces/${ws.id}/keywords`}>
-                          <Button variant="default" size="sm"><List className="h-3 w-3 mr-1" />Keywords</Button>
+                          <Button variant="default" size="sm"><List className="h-3 w-3 mr-1" />Từ khóa</Button>
                         </Link>
                         <Link href={`/workspaces/${ws.id}/settings`}>
-                          <Button variant="outline" size="sm"><Settings className="h-3 w-3 mr-1" />Settings</Button>
+                          <Button variant="outline" size="sm"><Settings className="h-3 w-3 mr-1" />Cài đặt</Button>
                         </Link>
                       </div>
                     </TableCell>

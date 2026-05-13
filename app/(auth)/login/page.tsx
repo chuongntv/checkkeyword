@@ -28,7 +28,7 @@ export default function LoginPage() {
     setLoading(false)
 
     if (result?.error) {
-      setError("Invalid email or password")
+      setError("Email hoặc mật khẩu không đúng")
     } else {
       router.push("/dashboard")
       router.refresh()
@@ -38,8 +38,8 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-2xl">Sign In</CardTitle>
-        <CardDescription>Enter your credentials to access SiteCheck</CardDescription>
+        <CardTitle className="text-2xl">Đăng nhập</CardTitle>
+        <CardDescription>Nhập thông tin để truy cập SiteCheck</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -50,6 +50,7 @@ export default function LoginPage() {
           )}
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">Email</label>
+
             <Input
               id="email"
               type="email"
@@ -60,7 +61,7 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">Password</label>
+            <label htmlFor="password" className="text-sm font-medium">Mật khẩu</label>
             <Input
               id="password"
               type="password"
@@ -71,7 +72,7 @@ export default function LoginPage() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </Button>
         </form>
       </CardContent>

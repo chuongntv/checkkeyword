@@ -66,7 +66,7 @@ export default function JobResultsPage({
 
   function handleExportCSV() {
     const rows = [
-      ["#", "Keyword", "Position", "Previous Position", "Trend", "Domains"].join(","),
+      ["#", "Từ khóa", "Vị trí", "Vị trí trước", "Xu hướng", "Tên miền"].join(","),
       ...results.map((r, i) =>
         [i + 1, `"${r.keyword}"`, r.position ?? "-", r.previousPosition ?? "-", r.trend, `"${r.domains.join("; ")}"`].join(",")
       ),
@@ -88,7 +88,7 @@ export default function JobResultsPage({
       <div className="lg:col-span-1">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Crawl History</CardTitle>
+            <CardTitle className="text-sm">Lịch sử crawl</CardTitle>
           </CardHeader>
           <CardContent>
             <CrawlJobHistory jobs={jobs} currentJobId={jobId} workspaceId={workspaceId} listId={listId} />
@@ -100,8 +100,8 @@ export default function JobResultsPage({
       <div className="lg:col-span-3">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-lg font-semibold">SERP Results</h2>
-            <p className="text-sm text-muted-foreground">{total} keywords</p>
+            <h2 className="text-lg font-semibold">Kết quả SERP</h2>
+            <p className="text-sm text-muted-foreground">{total} từ khóa</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExportCSV}>
@@ -113,14 +113,14 @@ export default function JobResultsPage({
                 await fetch(`/api/workspaces/${workspaceId}/keyword-lists/${listId}/crawl`, { method: "POST" })
               }}
             >
-              <Play className="h-3 w-3 mr-1" />New Crawl
+              <Play className="h-3 w-3 mr-1" />Crawl mới
             </Button>
           </div>
         </div>
 
         <div className="mb-4">
           <Input
-            placeholder="Search keywords..."
+            placeholder="Tìm kiếm từ khóa..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
             className="max-w-sm"
@@ -128,7 +128,7 @@ export default function JobResultsPage({
         </div>
 
         {loading ? (
-          <p className="text-muted-foreground">Loading results...</p>
+          <p className="text-muted-foreground">Đang tải kết quả...</p>
         ) : (
           <>
             <div className="rounded-md border">
@@ -136,10 +136,10 @@ export default function JobResultsPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-10">#</TableHead>
-                    <TableHead>Keyword</TableHead>
-                    <TableHead className="w-32">Position</TableHead>
-                    <TableHead className="w-32">Previous</TableHead>
-                    <TableHead>Domains</TableHead>
+                    <TableHead>Từ khóa</TableHead>
+                    <TableHead className="w-32">Vị trí</TableHead>
+                    <TableHead className="w-32">Trước đó</TableHead>
+                    <TableHead>Tên miền</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -164,13 +164,13 @@ export default function JobResultsPage({
             {totalPages > 1 && (
               <div className="flex justify-center gap-2 mt-4">
                 <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => fetchResults(page - 1, search || undefined)}>
-                  Previous
+                  Trước
                 </Button>
                 <span className="flex items-center text-sm text-muted-foreground">
-                  Page {page} of {totalPages}
+                  Trang {page} / {totalPages}
                 </span>
                 <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => fetchResults(page + 1, search || undefined)}>
-                  Next
+                  Tiếp
                 </Button>
               </div>
             )}

@@ -37,21 +37,21 @@ export default function SiteConfigPage() {
     setSaving(false)
   }
 
-  if (loading) return <p className="text-muted-foreground">Loading...</p>
+  if (loading) return <p className="text-muted-foreground">Đang tải...</p>
 
   const registrationOn = configs.registrationEnabled === "true"
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Site Configuration</h1>
+      <h1 className="text-2xl font-bold mb-6">Cấu hình hệ thống</h1>
       <div className="space-y-6 max-w-lg">
         <Card>
           <CardContent className="pt-6">
-            <h2 className="text-lg font-semibold mb-4">Registration</h2>
+            <h2 className="text-lg font-semibold mb-4">Đăng ký</h2>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Allow new registrations</p>
-                <p className="text-sm text-muted-foreground">When disabled, new users cannot sign up</p>
+                <p className="text-sm font-medium">Cho phép đăng ký mới</p>
+                <p className="text-sm text-muted-foreground">Khi tắt, người dùng mới không thể đăng ký</p>
               </div>
               <Button
                 variant={registrationOn ? "default" : "outline"}
@@ -60,7 +60,7 @@ export default function SiteConfigPage() {
                   setConfigs({ ...configs, registrationEnabled: registrationOn ? "false" : "true" })
                 }}
               >
-                {registrationOn ? "Enabled" : "Disabled"}
+                {registrationOn ? "Bật" : "Tắt"}
               </Button>
             </div>
           </CardContent>
@@ -70,7 +70,7 @@ export default function SiteConfigPage() {
           <CardContent className="pt-6">
             <h2 className="text-lg font-semibold mb-4">Crawler</h2>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Max Domains Target (per keyword crawl)</label>
+              <label className="text-sm font-medium">Số tên miền tối đa (mỗi từ khóa)</label>
               <Input
                 type="number"
                 value={configs.maxDomainsTarget ?? ""}
@@ -85,9 +85,9 @@ export default function SiteConfigPage() {
         <div className="flex items-center gap-3">
           <Button onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-            {saving ? "Saving..." : "Save All"}
+            {saving ? "Đang lưu..." : "Lưu tất cả"}
           </Button>
-          {saved && <span className="text-sm text-green-600">Saved!</span>}
+          {saved && <span className="text-sm text-green-600">Đã lưu!</span>}
         </div>
       </div>
     </div>

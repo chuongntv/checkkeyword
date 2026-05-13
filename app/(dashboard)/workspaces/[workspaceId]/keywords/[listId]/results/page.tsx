@@ -33,14 +33,14 @@ export default function ResultsIndexPage({
       })
   }, [workspaceId, listId])
 
-  if (loading) return <p className="text-muted-foreground">Loading...</p>
+  if (loading) return <p className="text-muted-foreground">Đang tải...</p>
 
   return (
     <Card>
       <CardContent className="py-12 text-center">
         <List className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="font-semibold mb-1">No crawl results yet</h3>
-        <p className="text-sm text-muted-foreground mb-4">Trigger a crawl from the keyword list page to see results here</p>
+        <h3 className="font-semibold mb-1">Chưa có kết quả crawl</h3>
+        <p className="text-sm text-muted-foreground mb-4">Chạy crawl từ trang danh sách từ khóa để xem kết quả</p>
       </CardContent>
     </Card>
   )

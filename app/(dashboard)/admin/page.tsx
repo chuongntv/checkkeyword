@@ -13,15 +13,15 @@ export default function AdminDashboardPage() {
   }, [])
 
   const cards = [
-    { title: "Users", value: stats?.users ?? "—", icon: Users },
-    { title: "Workspaces", value: stats?.workspaces ?? "—", icon: Building2 },
+    { title: "Người dùng", value: stats?.users ?? "—", icon: Users },
+    { title: "Workspace", value: stats?.workspaces ?? "—", icon: Building2 },
     { title: "Crawl Jobs", value: stats?.crawlJobs ?? "—", icon: Search },
-    { title: "SERP Results", value: stats?.serpResults ?? "—", icon: FileText },
+    { title: "Kết quả SERP", value: stats?.serpResults ?? "—", icon: FileText },
   ]
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6">Tổng quan quản trị</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <Card key={c.title}>

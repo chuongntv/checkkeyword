@@ -8,7 +8,7 @@ type CrawlJob = { id: string; status: string; createdAt: string; completedAt: st
 export function CrawlJobHistory({ jobs, currentJobId, workspaceId, listId }: {
   jobs: CrawlJob[]; currentJobId?: string; workspaceId: string; listId: string
 }) {
-  if (jobs.length === 0) return <p className="text-sm text-muted-foreground">No crawl history</p>
+  if (jobs.length === 0) return <p className="text-sm text-muted-foreground">Chưa có lịch sử crawl</p>
 
   return (
     <div className="space-y-2">

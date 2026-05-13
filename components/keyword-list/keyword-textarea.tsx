@@ -14,15 +14,15 @@ export function KeywordTextarea({ value, onChange }: KeywordTextareaProps) {
     <div className="space-y-2">
       <textarea
         className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        placeholder="seo tools&#10;rank tracker&#10;google ranking"
+        placeholder="công cụ seo&#10;theo dõi thứ hạng&#10;xếp hạng google"
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
       <div className="flex justify-between text-sm">
         <span className={overLimit ? "text-destructive" : "text-muted-foreground"}>
-          {count} keyword{count !== 1 ? "s" : ""} detected
+          {count} từ khóa
         </span>
-        {overLimit && <span className="text-destructive">Max 500 keywords</span>}
+        {overLimit && <span className="text-destructive">Tối đa 500 từ khóa</span>}
       </div>
     </div>
   )

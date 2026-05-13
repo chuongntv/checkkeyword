@@ -4,8 +4,8 @@ const TREND_CONFIG: Record<Trend, { icon: string; label: string; className: stri
   up: { icon: "↑", label: "", className: "text-green-600 font-bold" },
   down: { icon: "↓", label: "", className: "text-red-600 font-bold" },
   same: { icon: "—", label: "", className: "text-muted-foreground" },
-  new: { icon: "★", label: "NEW", className: "text-blue-600 font-bold" },
-  lost: { icon: "✗", label: "LOST", className: "text-orange-600 font-bold" },
+  new: { icon: "★", label: "MỚI", className: "text-blue-600 font-bold" },
+  lost: { icon: "✗", label: "MẤT", className: "text-orange-600 font-bold" },
 }
 
 export function PositionTrendBadge({ trend, position, previousPosition }: {

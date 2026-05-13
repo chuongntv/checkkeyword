@@ -13,13 +13,13 @@ export function LinksExpandable({ domains }: { domains: string[] }) {
       <span className="text-sm">{preview.join(", ")}</span>
       {domains.length > 3 && !expanded && (
         <button onClick={() => setExpanded(true)} className="ml-1 text-xs text-primary underline">
-          +{domains.length - 3} more
+          +{domains.length - 3} khác
         </button>
       )}
       {expanded && (
         <div className="mt-1 text-xs text-muted-foreground max-h-32 overflow-y-auto">
           {domains.map((d, i) => <div key={i}>{d}</div>)}
-          <button onClick={() => setExpanded(false)} className="text-primary underline mt-1">Show less</button>
+          <button onClick={() => setExpanded(false)} className="text-primary underline mt-1">Thu gọn</button>
         </div>
       )}
     </div>

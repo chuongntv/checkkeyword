@@ -36,7 +36,7 @@ export function AppHeader() {
               {session.user.email}
             </div>
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
-              Sign out
+              Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

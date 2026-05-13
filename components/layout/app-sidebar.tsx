@@ -34,16 +34,16 @@ import {
 import { ChevronRight } from "lucide-react"
 
 const mainNavItems = [
-  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Workspaces", href: "/workspaces", icon: Building2 },
+  { title: "Tổng quan", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Workspace", href: "/workspaces", icon: Building2 },
 ]
 
 const adminSubItems = [
-  { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { title: "Users", href: "/admin/users", icon: Users },
-  { title: "Workspaces", href: "/admin/workspaces", icon: Building2 },
-  { title: "Proxies", href: "/admin/proxies", icon: Globe },
-  { title: "Site Config", href: "/admin/crawler-config", icon: Settings2 },
+  { title: "Tổng quan", href: "/admin", icon: LayoutDashboard },
+  { title: "Người dùng", href: "/admin/users", icon: Users },
+  { title: "Workspace", href: "/admin/workspaces", icon: Building2 },
+  { title: "Proxy", href: "/admin/proxies", icon: Globe },
+  { title: "Cấu hình", href: "/admin/crawler-config", icon: Settings2 },
 ]
 
 interface AppSidebarProps {
@@ -63,7 +63,7 @@ export function AppSidebar({ isAdmin = false }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Điều hướng</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
@@ -82,7 +82,7 @@ export function AppSidebar({ isAdmin = false }: AppSidebarProps) {
         </SidebarGroup>
         {isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
+            <SidebarGroupLabel>Quản trị</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <Collapsible defaultOpen={pathname.startsWith("/admin")} className="group/collapsible">
@@ -91,7 +91,7 @@ export function AppSidebar({ isAdmin = false }: AppSidebarProps) {
                       render={<SidebarMenuButton isActive={pathname.startsWith("/admin")} />}
                     >
                       <Shield className="h-4 w-4" />
-                      <span>Admin Panel</span>
+                      <span>Quản trị</span>
                       <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                     </CollapsibleTrigger>
                     <CollapsibleContent>

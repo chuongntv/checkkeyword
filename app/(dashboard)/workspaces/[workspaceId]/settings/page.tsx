@@ -52,7 +52,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this workspace and all its data? This cannot be undone.")) return
+    if (!confirm("Xóa workspace này và toàn bộ dữ liệu? Hành động này không thể hoàn tác.")) return
     const res = await fetch(`/api/workspaces/${workspaceId}`, { method: "DELETE" })
     if (res.ok) router.push("/workspaces")
   }
@@ -75,7 +75,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
     fetchWorkspace()
   }
 
-  if (!ws) return <p className="text-muted-foreground">Loading...</p>
+  if (!ws) return <p className="text-muted-foreground">Đang tải...</p>
 
   return (
     <div className="max-w-2xl">
@@ -84,27 +84,27 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
 
       <Tabs defaultValue="general">
         <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="members">Members</TabsTrigger>
+          <TabsTrigger value="general">Chung</TabsTrigger>
+          <TabsTrigger value="members">Thành viên</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Workspace Settings</CardTitle>
-              <CardDescription>Update workspace name and domain</CardDescription>
+              <CardTitle>Cài đặt Workspace</CardTitle>
+              <CardDescription>Cập nhật tên và tên miền workspace</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSave} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Name</label>
+                  <label className="text-sm font-medium">Tên</label>
                   <Input value={name} onChange={(e) => setName(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Domain</label>
+                  <label className="text-sm font-medium">Tên miền</label>
                   <Input value={domain} onChange={(e) => setDomain(e.target.value)} required />
                 </div>
-                <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
+                <Button type="submit" disabled={saving}>{saving ? "Đang lưu..." : "Lưu thay đổi"}</Button>
               </form>
             </CardContent>
           </Card>
@@ -112,13 +112,13 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
           {ws.role === "owner" && (
             <Card className="border-destructive">
               <CardHeader>
-                <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                <CardTitle className="text-destructive">Vùng nguy hiểm</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Deleting this workspace removes all keyword lists, crawl jobs, and SERP results.
+                  Xóa workspace này sẽ loại bỏ toàn bộ danh sách từ khóa, tác vụ crawl và kết quả SERP.
                 </p>
-                <Button variant="destructive" onClick={handleDelete}>Delete Workspace</Button>
+                <Button variant="destructive" onClick={handleDelete}>Xóa Workspace</Button>
               </CardContent>
             </Card>
           )}
@@ -128,7 +128,7 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
           {ws.role === "owner" && (
             <Card>
               <CardHeader>
-                <CardTitle>Invite Member</CardTitle>
+                <CardTitle>Mời thành viên</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleInvite} className="flex gap-2">
@@ -145,10 +145,10 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
                     onChange={(e) => setInviteRole(e.target.value)}
                     className="rounded-md border px-3 text-sm"
                   >
-                    <option value="viewer">Viewer</option>
-                    <option value="editor">Editor</option>
+                    <option value="viewer">Người xem</option>
+                    <option value="editor">Người chỉnh sửa</option>
                   </select>
-                  <Button type="submit" disabled={inviting}>{inviting ? "..." : "Invite"}</Button>
+                  <Button type="submit" disabled={inviting}>{inviting ? "..." : "Mời"}</Button>
                 </form>
               </CardContent>
             </Card>
@@ -156,10 +156,10 @@ export default function WorkspaceSettingsPage({ params }: { params: Promise<{ wo
 
           <Card>
             <CardHeader>
-              <CardTitle>Members</CardTitle>
+              <CardTitle>Thành viên</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{ws.memberCount} member(s)</p>
+              <p className="text-sm text-muted-foreground">{ws.memberCount} thành viên</p>
             </CardContent>
           </Card>
         </TabsContent>

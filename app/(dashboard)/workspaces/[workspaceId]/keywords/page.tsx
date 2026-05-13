@@ -71,43 +71,43 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
   }
 
   async function handleDelete(listId: string) {
-    if (!confirm("Delete this keyword list and all its crawl data?")) return
+    if (!confirm("Xóa danh sách từ khóa này và toàn bộ dữ liệu crawl?")) return
     await fetch(`/api/workspaces/${workspaceId}/keyword-lists/${listId}`, { method: "DELETE" })
     fetchLists()
   }
 
-  if (loading) return <p className="text-muted-foreground">Loading...</p>
+  if (loading) return <p className="text-muted-foreground">Đang tải...</p>
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Keyword Lists</h1>
-          <p className="text-muted-foreground mt-1">{lists.length} lists</p>
+          <h1 className="text-2xl font-bold">Danh sách từ khóa</h1>
+          <p className="text-muted-foreground mt-1">{lists.length} danh sách</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button />}>
-            <Plus className="h-4 w-4 mr-2" />New List
+            <Plus className="h-4 w-4 mr-2" />Tạo danh sách
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create Keyword List</DialogTitle>
+              <DialogTitle>Tạo danh sách từ khóa</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
-                <Input placeholder="My keywords" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+                <label className="text-sm font-medium">Tên</label>
+                <Input placeholder="Từ khóa của tôi" value={newName} onChange={(e) => setNewName(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Keywords (one per line)</label>
+                <label className="text-sm font-medium">Từ khóa (mỗi dòng một từ)</label>
                 <KeywordTextarea value={newKeywords} onChange={setNewKeywords} />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Countries</label>
+                <label className="text-sm font-medium">Quốc gia</label>
                 <CountrySelector value={newCountries} onChange={setNewCountries} />
               </div>
               <Button type="submit" className="w-full" disabled={creating}>
-                {creating ? "Creating..." : "Create List"}
+                {creating ? "Đang tạo..." : "Tạo danh sách"}
               </Button>
             </form>
           </DialogContent>
@@ -118,10 +118,10 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
         <Card>
           <CardContent className="py-12 text-center">
             <List className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="font-semibold mb-1">No keyword lists</h3>
-            <p className="text-sm text-muted-foreground mb-4">Create a keyword list to start tracking SERP rankings</p>
+            <h3 className="font-semibold mb-1">Chưa có danh sách từ khóa</h3>
+            <p className="text-sm text-muted-foreground mb-4">Tạo danh sách từ khóa để bắt đầu theo dõi thứ hạng SERP</p>
             <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />Create List
+              <Plus className="h-4 w-4 mr-2" />Tạo danh sách
             </Button>
           </CardContent>
         </Card>
@@ -131,11 +131,11 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Keywords</TableHead>
-                  <TableHead>Countries</TableHead>
-                  <TableHead>Last Crawl</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Tên</TableHead>
+                  <TableHead>Từ khóa</TableHead>
+                  <TableHead>Quốc gia</TableHead>
+                  <TableHead>Crawl gần nhất</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -152,7 +152,7 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
                           <Badge key={kw} variant="secondary" className="text-xs">{kw}</Badge>
                         ))}
                         {list.keywords.length > 5 && (
-                          <Badge variant="outline" className="text-xs">+{list.keywords.length - 5} more</Badge>
+                          <Badge variant="outline" className="text-xs">+{list.keywords.length - 5} khác</Badge>
                         )}
                       </div>
                     </TableCell>
@@ -163,7 +163,7 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
                     <TableCell className="text-right">
                       <div className="flex gap-2 justify-end" onClick={(e) => e.stopPropagation()}>
                         <Link href={`/workspaces/${workspaceId}/keywords/${list.id}/results`}>
-                          <Button variant="default" size="sm"><BarChart3 className="h-3 w-3 mr-1" />Results</Button>
+                          <Button variant="default" size="sm"><BarChart3 className="h-3 w-3 mr-1" />Kết quả</Button>
                         </Link>
                         <Button
                           variant="outline" size="sm"
