@@ -8,8 +8,8 @@ import { CrawlerConfig } from "../../models/crawler-config.model"
 
 const DEFAULT_DOMAINS_TARGET = 100
 const MAX_PAGES = 30
-const MAX_RETRIES = 10
-const RETRY_DELAY = 10000
+const MAX_RETRIES = 5
+const RETRY_DELAY = 30000
 const CHROME_PATH = process.env.CHROME_PATH || "/usr/bin/google-chrome-stable"
 
 function sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)) }
