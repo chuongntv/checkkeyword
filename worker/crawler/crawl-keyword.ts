@@ -8,8 +8,8 @@ import { CrawlerConfig } from "../../models/crawler-config.model"
 
 const DEFAULT_DOMAINS_TARGET = 100
 const MAX_PAGES = 30
-const MAX_RETRIES = 30
-const RETRY_DELAY = 15000
+const MAX_RETRIES = 10
+const RETRY_DELAY = 10000
 const CHROME_PATH = process.env.CHROME_PATH || "/usr/bin/google-chrome-stable"
 
 function sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)) }
@@ -30,6 +30,10 @@ async function getDomainsTarget(): Promise<number> {
   } catch {
     return DEFAULT_DOMAINS_TARGET
   }
+}
+
+function isSorryPage(url: string): boolean {
+  return url.includes("/sorry/") || url.includes("google.com/sorry")
 }
 
 export type CrawlResult = {
@@ -89,23 +93,35 @@ export async function crawlKeyword(
 
         // Handle Google consent page
         try {
-          const acceptBtn = await page.$('button[aria-label*="Accept" i], button[aria-label*="agree" i], button[aria-label*="Tout accepter" i], #L2AGLb, .tHlp8d')
+          const acceptBtn = await page.$('button[aria-label*="Accept" i], button[aria-label*="agree" i], #L2AGLb, .tHlp8d')
           if (acceptBtn) {
             await acceptBtn.click()
             await sleep(2000)
           }
         } catch {}
 
-        // Handle Google "before you continue" dialog
-        try {
-          const dialogBtn = await page.$('button[aria-label*="Reject" i], button[aria-label*="refuse" i], div[role="button"][tabindex="0"]')
-          if (dialogBtn) {
-            await dialogBtn.click()
-            await sleep(2000)
+        // Check if redirected to sorry page
+        if (isSorryPage(page.url())) {
+          console.log(`[Crawler] Google sorry page detected for "${keyword}", attempting captcha solve...`)
+          const solved = await solveCaptchaIfPresent(page)
+          if (solved) {
+            // Wait for redirect back to search results
+            await sleep(5000)
+            // If still on sorry page, try navigating back
+            if (isSorryPage(page.url())) {
+              console.log(`[Crawler] Still on sorry page after captcha, navigating back to search...`)
+              await page.goto(googleUrl, { waitUntil: "networkidle2", timeout: 60000 }).catch(() => {})
+              await sleep(3000)
+            }
           }
-        } catch {}
-
-        await solveCaptchaIfPresent(page)
+          // If still on sorry page, throw to trigger retry
+          if (isSorryPage(page.url())) {
+            console.log(`[Crawler] Sorry page not resolved for "${keyword}", will retry...`)
+            if (browser) { try { await browser.close() } catch {} browser = null }
+            if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY)
+            continue
+          }
+        }
 
         // Crawl pages
         let allLinks: string[] = []
@@ -113,18 +129,21 @@ export async function crawlKeyword(
         let pageNum = 1
 
         while (allDomains.length < domainsTarget && pageNum <= MAX_PAGES) {
-          await solveCaptchaIfPresent(page)
-          const { links, domains } = await extractSerpResults(page)
-
-          // Debug: dump page snippet if no results found
-          if (links.length === 0 && pageNum === 1) {
-            const title = await page.title().catch(() => "?")
-            const url = page.url()
-            const snippet = await page.evaluate(() => document.body?.innerText?.slice(0, 500) ?? "empty")
-            console.log(`[Crawler] DEBUG "${keyword}" — title: ${title}, url: ${url}`)
-            console.log(`[Crawler] DEBUG snippet: ${snippet.slice(0, 300)}`)
+          // Check for sorry page during pagination
+          if (isSorryPage(page.url())) {
+            console.log(`[Crawler] Sorry page during pagination (page ${pageNum}) for "${keyword}"`)
+            const solved = await solveCaptchaIfPresent(page)
+            if (solved) {
+              await sleep(5000)
+              if (isSorryPage(page.url())) {
+                await page.goto(googleUrl, { waitUntil: "networkidle2", timeout: 60000 }).catch(() => {})
+                await sleep(3000)
+              }
+            }
+            if (isSorryPage(page.url())) break
           }
 
+          const { links, domains } = await extractSerpResults(page)
           allLinks = [...new Set([...allLinks, ...links])]
           allDomains = [...new Set([...allDomains, ...domains])]
 
@@ -137,11 +156,18 @@ export async function crawlKeyword(
             if (!href) break
 
             await page.goto(new URL(href, page.url()).toString(), { waitUntil: "networkidle0", timeout: 120000 })
-            await solveCaptchaIfPresent(page)
             await sleep(3000)
           } catch { break }
 
           pageNum++
+        }
+
+        // If 0 links found, treat as failure and retry
+        if (allLinks.length === 0) {
+          console.log(`[Crawler] 0 links extracted for "${keyword}", will retry...`)
+          if (browser) { try { await browser.close() } catch {} browser = null }
+          if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY)
+          continue
         }
 
         const position = findDomainPosition(allLinks, domain)

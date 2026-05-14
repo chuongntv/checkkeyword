@@ -104,24 +104,48 @@ async function solveRecaptchaV2(page: Page): Promise<boolean> {
 }
 
 async function solveImageCaptcha(page: Page): Promise<boolean> {
-  const handle = await page.$('img[src*="captcha"], img[src*="/sorry/"], img[alt*="captcha" i], form img')
-  const inputHandle = await page.$('input[name="captcha"], input#captcha, input[name="g-recaptcha-response"], input[name="answer"]')
-  if (!handle || !inputHandle) return false
   if (!isEnabled() || !getApiKey()) return false
 
+  // Google sorry page uses specific selectors
+  const handle = await page.$(
+    'img[src*="captcha"], img[src*="/sorry/"], img[src*="Captcha"], img[alt*="captcha" i], ' +
+    '#captcha_image img, .captcha_image img, form img[src*="data:image"]'
+  )
+  const inputHandle = await page.$(
+    'input[name="captcha"], input#captcha, input[name="g-recaptcha-response"], ' +
+    'input[name="answer"], input#captchainput, input[type="text"]'
+  )
+  if (!handle || !inputHandle) {
+    console.log(`[Captcha] Image captcha elements not found (img=${!!handle}, input=${!!inputHandle})`)
+    return false
+  }
+
+  console.log(`[Captcha] Found image captcha, sending to 2Captcha...`)
   const buffer = await handle.screenshot({ encoding: "binary" })
   const base64 = Buffer.from(buffer as any).toString("base64")
   const requestId = await request2Captcha({ key: getApiKey(), method: "base64", body: base64, json: "1" })
+  console.log(`[Captcha] 2Captcha request ID: ${requestId}, waiting for solution...`)
   const solution = await poll2Captcha(requestId)
+  console.log(`[Captcha] Solution received, submitting...`)
 
   await inputHandle.focus()
   await page.keyboard.type(solution)
-  const formHandle = await page.$("form")
-  if (formHandle) {
+
+  // Try clicking submit button first, then fallback to form submit
+  const submitBtn = await page.$('input[type="submit"], button[type="submit"], #captcha_submit')
+  if (submitBtn) {
     await Promise.all([
       page.waitForNavigation({ waitUntil: "networkidle0", timeout: 120000 }).catch(() => {}),
-      page.evaluate(() => { const f = document.querySelector("form"); if (f && typeof f.submit === "function") f.submit() }),
+      submitBtn.click(),
     ])
+  } else {
+    const formHandle = await page.$("form")
+    if (formHandle) {
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0", timeout: 120000 }).catch(() => {}),
+        page.evaluate(() => { const f = document.querySelector("form"); if (f && typeof f.submit === "function") f.submit() }),
+      ])
+    }
   }
   return true
 }
@@ -129,9 +153,16 @@ async function solveImageCaptcha(page: Page): Promise<boolean> {
 export async function solveCaptchaIfPresent(page: Page): Promise<boolean> {
   try {
     const html = await page.content()
-    if (!/recaptcha|g-recaptcha|our systems have detected unusual traffic|sorry|id\=recaptcha/.test(html.toLowerCase())) return false
+    const hasCaptcha = /recaptcha|g-recaptcha|our systems have detected unusual traffic|sorry|id\=recaptcha/i.test(html)
+    if (!hasCaptcha) return false
+
+    console.log(`[Captcha] Captcha detected on ${page.url().slice(0, 80)}...`)
     if (await solveRecaptchaV2(page)) return true
     if (await solveImageCaptcha(page)) return true
+    console.log(`[Captcha] Could not solve captcha (no matching elements or not enabled)`)
     return false
-  } catch { return false }
+  } catch (e) {
+    console.log(`[Captcha] Error solving captcha:`, (e as Error).message)
+    return false
+  }
 }
