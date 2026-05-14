@@ -166,13 +166,10 @@ async function solveRecaptchaV2(page: Page): Promise<boolean> {
   console.log(`[Captcha] Found reCAPTCHA: sitekey=${info.sitekey}, enterprise=${info.isEnterprise}, invisible=${info.isInvisible}`)
 
   const ua = await page.evaluate(() => navigator.userAgent)
-  let pageUrl = page.url()
-  try {
-    const u = new URL(pageUrl)
-    const continueUrl = u.searchParams.get("continue")
-    if (continueUrl) pageUrl = decodeURIComponent(continueUrl)
-  } catch {}
-  console.log(`[Captcha] Sending to 2Captcha: pageurl=${pageUrl.slice(0, 80)}`)
+  // Use the actual page URL (sorry page) where the reCAPTCHA is rendered
+  // 2Captcha verifies the solution against this URL's domain
+  const pageUrl = page.url()
+  console.log(`[Captcha] Sending to 2Captcha: pageurl=${pageUrl.slice(0, 100)}`)
 
   const params: Record<string, string> = {
     key: getApiKey(), method: "userrecaptcha", googlekey: info.sitekey,
