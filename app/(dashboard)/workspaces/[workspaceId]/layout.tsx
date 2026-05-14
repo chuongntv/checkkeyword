@@ -19,9 +19,10 @@ export default async function WorkspaceLayout({
 
   if (!ws) redirect("/workspaces")
 
+  const isAdmin = session.user.isAdmin
   const isOwner = ws.ownerId.toString() === session.user.id
   const isMember = ws.members.some((m) => m.userId.toString() === session.user.id)
-  if (!isOwner && !isMember) redirect("/workspaces")
+  if (!isOwner && !isMember && !isAdmin) redirect("/workspaces")
 
   return <>{children}</>
 }
