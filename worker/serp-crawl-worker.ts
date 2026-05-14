@@ -7,7 +7,7 @@ import { crawlKeyword } from "./crawler/crawl-keyword"
 import { Types } from "mongoose"
 import pAll from "p-all"
 
-const KEYWORD_CONCURRENCY = 3
+const KEYWORD_CONCURRENCY = 1
 const JOB_TIMEOUT_MS = 60 * 60 * 1000 // 1 hour
 
 export function startSerpWorker() {
