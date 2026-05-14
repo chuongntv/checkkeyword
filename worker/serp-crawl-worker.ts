@@ -8,6 +8,7 @@ import { Types } from "mongoose"
 import pAll from "p-all"
 
 const KEYWORD_CONCURRENCY = 3
+const JOB_TIMEOUT_MS = 60 * 60 * 1000 // 1 hour
 
 export function startSerpWorker() {
   const worker = new Worker(
@@ -17,11 +18,18 @@ export function startSerpWorker() {
 
       console.log(`[Worker] Starting job ${crawlJobId} with ${keywords.length} keywords`)
       await connectDB()
-      await CrawlJob.findByIdAndUpdate(crawlJobId, { status: "running", startedAt: new Date() })
+      const startedAt = new Date()
+      await CrawlJob.findByIdAndUpdate(crawlJobId, { status: "running", startedAt })
 
       const country = countries[0] ?? "vn"
 
       const tasks = keywords.map((keyword: string) => async () => {
+        // Check 1-hour limit before each keyword
+        if (Date.now() - startedAt.getTime() > JOB_TIMEOUT_MS) {
+          console.log(`[Worker] Job ${crawlJobId} exceeded 1h limit, skipping remaining keywords`)
+          return
+        }
+
         try {
           const result = await crawlKeyword(keyword, domain, country, crawlJobId)
           await SerpResult.create({
@@ -48,8 +56,15 @@ export function startSerpWorker() {
       // Backfill previousPosition
       await backfillPreviousPosition(crawlJobId, workspaceId, keywordListId)
 
-      await CrawlJob.findByIdAndUpdate(crawlJobId, { status: "done", completedAt: new Date() })
-      console.log(`[Worker] Job ${crawlJobId} completed`)
+      // Mark as failed if timed out, otherwise done
+      const elapsed = Date.now() - startedAt.getTime()
+      if (elapsed > JOB_TIMEOUT_MS) {
+        await CrawlJob.findByIdAndUpdate(crawlJobId, { status: "failed", completedAt: new Date() })
+        console.log(`[Worker] Job ${crawlJobId} marked as failed (exceeded 1h limit)`)
+      } else {
+        await CrawlJob.findByIdAndUpdate(crawlJobId, { status: "done", completedAt: new Date() })
+        console.log(`[Worker] Job ${crawlJobId} completed`)
+      }
     },
     {
       connection: getRedis(),
