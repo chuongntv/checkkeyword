@@ -43,7 +43,7 @@ async function getRecaptchaInfo(page: Page) {
   try {
     for (const f of page.frames()) {
       const url = f.url()
-      if (url && /recaptcha\/api2\/(?:anchor|enterprise)/.test(url)) {
+      if (url && /recaptcha\/(?:api2|enterprise)\/(?:anchor|bframe)/.test(url)) {
         const u = new URL(url)
         const k = u.searchParams.get("k")
         if (k) return {
@@ -56,7 +56,20 @@ async function getRecaptchaInfo(page: Page) {
     }
     const info = await page.evaluate(() => {
       const el = document.querySelector("[data-sitekey]")
-      if (!el) return null
+      if (!el) {
+        // Fallback: check for g-recaptcha div with sitekey in script
+        const recaptchaDiv = document.querySelector("#recaptcha, .g-recaptcha")
+        if (recaptchaDiv) {
+          const sk = recaptchaDiv.getAttribute("data-sitekey")
+          if (sk) return {
+            sitekey: sk,
+            isEnterprise: !!document.querySelector('script[src*="recaptcha/enterprise"], iframe[src*="recaptcha/enterprise"]'),
+            stoken: recaptchaDiv.getAttribute("data-s"),
+            isInvisible: false,
+          }
+        }
+        return null
+      }
       return {
         sitekey: el.getAttribute("data-sitekey"),
         isEnterprise: !!document.querySelector('script[src*="recaptcha/enterprise"], iframe[src*="recaptcha/enterprise"]'),

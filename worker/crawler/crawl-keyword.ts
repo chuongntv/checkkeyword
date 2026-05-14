@@ -88,7 +88,7 @@ export async function crawlKeyword(
 
         // Use networkidle0 like working sitecheck — ensures page fully loaded
         await page.goto(googleUrl, { waitUntil: "networkidle0", timeout: 120000 })
-        await sleep(20000)
+        await sleep(30000)
 
         // Handle Google consent page
         try {
