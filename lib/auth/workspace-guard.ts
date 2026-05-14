@@ -24,6 +24,11 @@ export async function requireWorkspaceAccess(
 
   const userId = session.user.id
 
+  // Admin bypass — full access to all workspaces
+  if (session.user.isAdmin) {
+    return { workspace: ws, role: "owner", session }
+  }
+
   // Owner check
   if (ws.ownerId.toString() === userId) {
     return { workspace: ws, role: "owner", session }
