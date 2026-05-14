@@ -32,10 +32,6 @@ async function getDomainsTarget(): Promise<number> {
   }
 }
 
-function isSorryPage(url: string): boolean {
-  return url.includes("/sorry/") || url.includes("google.com/sorry")
-}
-
 export type CrawlResult = {
   position: number | null
   links: string[]
@@ -69,10 +65,12 @@ export async function crawlKeyword(
         const { browser: _browser, page } = await connect({
           headless: true,
           turnstile: true,
-          disableXvfb: true,
-          ignoreAllFlags: true,
+          disableXvfb: false,
+          ignoreAllFlags: false,
           customConfig: {
             chromePath: CHROME_PATH,
+            ignoreDefaultFlags: false,
+            userDataDir: profile?.dir,
           },
           args: ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--disable-gpu"],
           connectOption: { defaultViewport: null, protocolTimeout: 180000 },
@@ -88,8 +86,9 @@ export async function crawlKeyword(
 
         try { await page.setUserAgent(getRandomUserAgent()) } catch {}
 
-        await page.goto(googleUrl, { waitUntil: "networkidle2", timeout: 60000 })
-        await sleep(3000)
+        // Use networkidle0 like working sitecheck — ensures page fully loaded
+        await page.goto(googleUrl, { waitUntil: "networkidle0", timeout: 120000 })
+        await sleep(20000)
 
         // Handle Google consent page
         try {
@@ -100,28 +99,8 @@ export async function crawlKeyword(
           }
         } catch {}
 
-        // Check if redirected to sorry page
-        if (isSorryPage(page.url())) {
-          console.log(`[Crawler] Google sorry page detected for "${keyword}", attempting captcha solve...`)
-          const solved = await solveCaptchaIfPresent(page)
-          if (solved) {
-            // Wait for redirect back to search results
-            await sleep(5000)
-            // If still on sorry page, try navigating back
-            if (isSorryPage(page.url())) {
-              console.log(`[Crawler] Still on sorry page after captcha, navigating back to search...`)
-              await page.goto(googleUrl, { waitUntil: "networkidle2", timeout: 60000 }).catch(() => {})
-              await sleep(3000)
-            }
-          }
-          // If still on sorry page, throw to trigger retry
-          if (isSorryPage(page.url())) {
-            console.log(`[Crawler] Sorry page not resolved for "${keyword}", will retry...`)
-            if (browser) { try { await browser.close() } catch {} browser = null }
-            if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY)
-            continue
-          }
-        }
+        // Try solving captcha — like working sitecheck, always try after initial load
+        await solveCaptchaIfPresent(page)
 
         // Crawl pages
         let allLinks: string[] = []
@@ -129,19 +108,8 @@ export async function crawlKeyword(
         let pageNum = 1
 
         while (allDomains.length < domainsTarget && pageNum <= MAX_PAGES) {
-          // Check for sorry page during pagination
-          if (isSorryPage(page.url())) {
-            console.log(`[Crawler] Sorry page during pagination (page ${pageNum}) for "${keyword}"`)
-            const solved = await solveCaptchaIfPresent(page)
-            if (solved) {
-              await sleep(5000)
-              if (isSorryPage(page.url())) {
-                await page.goto(googleUrl, { waitUntil: "networkidle2", timeout: 60000 }).catch(() => {})
-                await sleep(3000)
-              }
-            }
-            if (isSorryPage(page.url())) break
-          }
+          // Proactively check for captcha on every page — like working sitecheck
+          await solveCaptchaIfPresent(page)
 
           const { links, domains } = await extractSerpResults(page)
           allLinks = [...new Set([...allLinks, ...links])]
@@ -156,6 +124,8 @@ export async function crawlKeyword(
             if (!href) break
 
             await page.goto(new URL(href, page.url()).toString(), { waitUntil: "networkidle0", timeout: 120000 })
+            // Solve captcha after navigating to next page
+            await solveCaptchaIfPresent(page)
             await sleep(3000)
           } catch { break }
 
