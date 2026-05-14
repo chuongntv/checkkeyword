@@ -101,24 +101,53 @@ async function getRecaptchaInfo(page: Page, retries = 3): Promise<{
 }
 
 async function injectRecaptchaToken(page: Page, token: string) {
+  // Set token values in textareas first
   await page.evaluate((tkn: string) => {
     const setVal = (sel: string) => { document.querySelectorAll(sel).forEach((el: any) => { el.value = tkn; el.innerHTML = tkn }) }
     setVal('textarea#g-recaptcha-response')
     setVal('textarea[name="g-recaptcha-response"]')
     setVal('textarea[name="g-recaptcha-response-100000"]')
-    // Google sorry page uses submitCallback via data-callback
+  }, token)
+
+  // Try submitCallback (Google sorry page uses data-callback="submitCallback")
+  const hasCallback = await page.evaluate((tkn: string) => {
     try {
       if (typeof (window as any).submitCallback === 'function') {
         (window as any).submitCallback(tkn)
-        return
+        return true
       }
     } catch {}
+    return false
+  }, token)
 
-    const submit = document.querySelector('button[type="submit"], input[type="submit"], #submit, #recaptcha-verify-button')
-    if (submit) (submit as HTMLElement).click()
+  if (hasCallback) {
+    try {
+      await page.waitForNavigation({ waitUntil: "networkidle0", timeout: 30000 })
+      console.log(`[Captcha] Navigation after submitCallback to: ${page.url().slice(0, 80)}`)
+      return
+    } catch {
+      console.log(`[Captcha] submitCallback did not trigger navigation, trying form submit`)
+    }
+  }
+
+  // Fallback: click submit button
+  const submit = await page.$('input[type="submit"], button[type="submit"], #submit, #recaptcha-verify-button')
+  if (submit) {
+    try {
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0", timeout: 30000 }).catch(() => {}),
+        submit.click(),
+      ])
+      console.log(`[Captcha] Navigation after submit click to: ${page.url().slice(0, 80)}`)
+      return
+    } catch {}
+  }
+
+  // Last resort: form.submit()
+  await page.evaluate(() => {
     const form = document.querySelector("form")
     if (form && typeof form.submit === "function") form.submit()
-  }, token)
+  })
 }
 
 async function solveRecaptchaV2(page: Page): Promise<boolean> {
@@ -159,8 +188,8 @@ async function solveRecaptchaV2(page: Page): Promise<boolean> {
   const solution = await poll2Captcha(requestId)
   console.log(`[Captcha] Solution received (${solution.length} chars), injecting token...`)
   await injectRecaptchaToken(page, solution)
-  console.log(`[Captcha] Token injected, waiting for page to process...`)
-  await wait(5000)
+  await injectRecaptchaToken(page, solution)
+  await wait(3000)
   console.log(`[Captcha] Page URL after injection: ${page.url().slice(0, 100)}`)
   return true
 }
