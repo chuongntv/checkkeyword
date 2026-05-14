@@ -11,12 +11,12 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y curl git build-essential
 ```
 
-### 1.2 Cài Node.js 20.x
+### 1.2 Cài Node.js 22.x
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
-node -v   # v20.x.x
+node -v   # v22.x.x
 npm -v
 ```
 
@@ -104,7 +104,7 @@ Cấu hình `.env`:
 
 ```env
 # Database
-MONGODB_URI=mongodb://localhost:27017/sitecheck
+MONGODB_URI=mongodb://localhost:27017/checkkeyword
 REDIS_URL=redis://localhost:6379
 
 # NextAuth
@@ -119,6 +119,7 @@ CHROME_PATH=/usr/bin/google-chrome-stable
 
 # Crawler
 USER_PROFILE_SLOTS=20
+TWO_CAPTCHA_POLL_INTERVAL_MS=5000
 
 # Captcha (tuỳ chọn)
 TWO_CAPTCHA_API_KEY=
@@ -154,7 +155,7 @@ mkdir -p worker/user_data
 
 ```bash
 # Vào MongoDB shell tạo user admin
-mongosh sitecheck --eval '
+mongosh checkkeyword --eval '
 db.users.insertOne({
   name: "Admin",
   email: "chuongntv.1409@gmail.com",
@@ -281,7 +282,11 @@ git pull origin main
 npm ci
 npm run build
 npm run worker:build
-pm2 restart all
+
+# IMPORTANT: Worker cần delete + start (không chỉ restart) để load code mới
+pm2 delete sitecheck-worker
+pm2 start ecosystem.config.js --only sitecheck-worker
+pm2 restart sitecheck-app
 ```
 
 ### Xem logs crawler
@@ -323,10 +328,10 @@ crontab -e
 
 ```bash
 # Backup
-mongodump --db sitecheck --out /backup/mongo/$(date +%Y%m%d)
+mongodump --db checkkeyword --out /backup/mongo/$(date +%Y%m%d)
 
 # Restore
-mongorestore --db sitecheck /backup/mongo/20240101/sitecheck
+mongorestore --db checkkeyword /backup/mongo/20240101/checkkeyword
 ```
 
 ### Cron backup hàng ngày
@@ -336,7 +341,7 @@ sudo nano /etc/cron.d/sitecheck-backup
 ```
 
 ```
-0 2 * * * deploy mongodump --db sitecheck --out /backup/mongo/$(date +\%Y\%m\%d)
+0 2 * * * deploy mongodump --db checkkeyword --out /backup/mongo/$(date +\%Y\%m\%d)
 ```
 
 ## 7. Troubleshooting
@@ -348,7 +353,7 @@ pm2 logs sitecheck-worker --lines 50
 # Kiểm tra Redis kết nối
 redis-cli ping
 # Kiểm tra MongoDB kết nối
-mongosh sitecheck --eval "db.adminCommand('ping')"
+mongosh checkkeyword --eval "db.adminCommand('ping')"
 ```
 
 ### Chrome crash
