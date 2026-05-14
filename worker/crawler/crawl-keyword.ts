@@ -70,7 +70,6 @@ export async function crawlKeyword(
           customConfig: {
             chromePath: CHROME_PATH,
             ignoreDefaultFlags: false,
-            userDataDir: profile?.dir,
           },
           args: ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--disable-gpu"],
           connectOption: { defaultViewport: null, protocolTimeout: 180000 },
