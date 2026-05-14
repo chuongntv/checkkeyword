@@ -23,14 +23,18 @@ export default function ResultsIndexPage({
     fetch(`/api/workspaces/${workspaceId}/keyword-lists/${listId}/crawl-jobs`)
       .then((r) => r.json())
       .then((data) => {
+        if (!Array.isArray(data)) {
+          setLoading(false)
+          return
+        }
         setJobs(data)
-        // Redirect to latest done job if exists
         const latestDone = data.find((j: CrawlJob) => j.status === "done")
         if (latestDone) {
           router.replace(`/workspaces/${workspaceId}/keywords/${listId}/results/${latestDone.id}`)
         }
         setLoading(false)
       })
+      .catch(() => setLoading(false))
   }, [workspaceId, listId])
 
   if (loading) return <p className="text-muted-foreground">Đang tải...</p>

@@ -16,8 +16,8 @@ export class ListCrawlJobsService extends BaseService<Input, Output> {
     return jobs.map((j) => ({
       id: j._id.toString(),
       status: j.status,
-      createdAt: j.createdAt.toISOString(),
-      completedAt: j.completedAt?.toISOString() ?? null,
+      createdAt: j.createdAt ? new Date(j.createdAt).toISOString() : new Date().toISOString(),
+      completedAt: j.completedAt?.toISOString?.() ?? null,
     }))
   }
 }
