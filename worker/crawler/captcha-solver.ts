@@ -39,25 +39,38 @@ async function poll2Captcha(requestId: string, timeoutMs = 120000, intervalMs = 
   throw new Error("2Captcha timeout while waiting for solution")
 }
 
-async function getRecaptchaInfo(page: Page) {
-  try {
-    for (const f of page.frames()) {
-      const url = f.url()
-      if (url && /recaptcha\/(?:api2|enterprise)\/(?:anchor|bframe)/.test(url)) {
-        const u = new URL(url)
-        const k = u.searchParams.get("k")
-        if (k) return {
-          sitekey: k,
-          isEnterprise: /enterprise/.test(url),
-          stoken: u.searchParams.get("s"),
-          isInvisible: u.searchParams.get("size") === "invisible",
+async function getRecaptchaInfo(page: Page, retries = 3): Promise<{
+  sitekey: string; isEnterprise: boolean; stoken: string | null; isInvisible: boolean
+} | null> {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      // Check frames first
+      const frames = page.frames()
+      console.log(`[Captcha] getRecaptchaInfo attempt ${attempt + 1}: ${frames.length} frames`)
+      for (const f of frames) {
+        const url = f.url()
+        if (url && /recaptcha\/(?:api2|enterprise)\/(?:anchor|bframe)/.test(url)) {
+          const u = new URL(url)
+          const k = u.searchParams.get("k")
+          console.log(`[Captcha] Found reCAPTCHA frame: ${url.slice(0, 100)} sitekey=${k}`)
+          if (k) return {
+            sitekey: k,
+            isEnterprise: /enterprise/.test(url),
+            stoken: u.searchParams.get("s"),
+            isInvisible: u.searchParams.get("size") === "invisible",
+          }
         }
       }
-    }
-    const info = await page.evaluate(() => {
-      const el = document.querySelector("[data-sitekey]")
-      if (!el) {
-        // Fallback: check for g-recaptcha div with sitekey in script
+
+      // Check DOM
+      const info = await page.evaluate(() => {
+        const el = document.querySelector("[data-sitekey]")
+        if (el) return {
+          sitekey: el.getAttribute("data-sitekey"),
+          isEnterprise: !!document.querySelector('script[src*="recaptcha/enterprise"], iframe[src*="recaptcha/enterprise"]'),
+          stoken: el.getAttribute("data-s"),
+          isInvisible: (el.getAttribute("data-size") || "").toLowerCase() === "invisible",
+        }
         const recaptchaDiv = document.querySelector("#recaptcha, .g-recaptcha")
         if (recaptchaDiv) {
           const sk = recaptchaDiv.getAttribute("data-sitekey")
@@ -69,16 +82,21 @@ async function getRecaptchaInfo(page: Page) {
           }
         }
         return null
+      })
+      if (info?.sitekey) {
+        console.log(`[Captcha] Found sitekey in DOM: ${info.sitekey}`)
+        return info
       }
-      return {
-        sitekey: el.getAttribute("data-sitekey"),
-        isEnterprise: !!document.querySelector('script[src*="recaptcha/enterprise"], iframe[src*="recaptcha/enterprise"]'),
-        stoken: el.getAttribute("data-s"),
-        isInvisible: (el.getAttribute("data-size") || "").toLowerCase() === "invisible",
+
+      if (attempt < retries - 1) {
+        console.log(`[Captcha] Sitekey not found, waiting 5s before retry...`)
+        await wait(5000)
       }
-    })
-    if (info?.sitekey) return info
-  } catch {}
+    } catch (e) {
+      console.log(`[Captcha] getRecaptchaInfo error: ${(e as Error).message}`)
+      if (attempt < retries - 1) await wait(3000)
+    }
+  }
   return null
 }
 
@@ -108,19 +126,25 @@ async function solveRecaptchaV2(page: Page): Promise<boolean> {
   await wait(5000)
   const info = await getRecaptchaInfo(page)
   if (!info?.sitekey) {
-    console.log(`[Captcha] reCAPTCHA sitekey not found in frames or DOM`)
+    console.log(`[Captcha] reCAPTCHA sitekey not found after retries`)
     return false
   }
-  if (!isEnabled() || !getApiKey()) return false
+  if (!isEnabled() || !getApiKey()) {
+    console.log(`[Captcha] 2Captcha not enabled (enabled=${isEnabled()}, hasKey=${!!getApiKey()})`)
+    return false
+  }
+
+  console.log(`[Captcha] Found reCAPTCHA: sitekey=${info.sitekey}, enterprise=${info.isEnterprise}, invisible=${info.isInvisible}`)
 
   const ua = await page.evaluate(() => navigator.userAgent)
-  // Use the original search URL, not the long sorry page URL
   let pageUrl = page.url()
   try {
     const u = new URL(pageUrl)
     const continueUrl = u.searchParams.get("continue")
     if (continueUrl) pageUrl = decodeURIComponent(continueUrl)
   } catch {}
+  console.log(`[Captcha] Sending to 2Captcha: pageurl=${pageUrl.slice(0, 80)}`)
+
   const params: Record<string, string> = {
     key: getApiKey(), method: "userrecaptcha", googlekey: info.sitekey,
     pageurl: pageUrl, json: "1", userAgent: ua,
@@ -129,10 +153,15 @@ async function solveRecaptchaV2(page: Page): Promise<boolean> {
   if (info.stoken) params["data-s"] = info.stoken
   if (info.isInvisible) params.invisible = "1"
 
+  console.log(`[Captcha] Requesting 2Captcha solution...`)
   const requestId = await request2Captcha(params)
+  console.log(`[Captcha] 2Captcha request ID: ${requestId}, polling for solution...`)
   const solution = await poll2Captcha(requestId)
+  console.log(`[Captcha] Solution received (${solution.length} chars), injecting token...`)
   await injectRecaptchaToken(page, solution)
-  await wait(2000)
+  console.log(`[Captcha] Token injected, waiting for page to process...`)
+  await wait(5000)
+  console.log(`[Captcha] Page URL after injection: ${page.url().slice(0, 100)}`)
   return true
 }
 
