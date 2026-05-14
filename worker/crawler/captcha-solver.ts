@@ -91,8 +91,13 @@ async function injectRecaptchaToken(page: Page, token: string) {
 }
 
 async function solveRecaptchaV2(page: Page): Promise<boolean> {
+  // Wait for reCAPTCHA frames to load
+  await wait(5000)
   const info = await getRecaptchaInfo(page)
-  if (!info?.sitekey) return false
+  if (!info?.sitekey) {
+    console.log(`[Captcha] reCAPTCHA sitekey not found in frames or DOM`)
+    return false
+  }
   if (!isEnabled() || !getApiKey()) return false
 
   const ua = await page.evaluate(() => navigator.userAgent)
