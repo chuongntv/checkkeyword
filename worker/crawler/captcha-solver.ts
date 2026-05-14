@@ -99,47 +99,38 @@ async function getRecaptchaInfo(page: Page, retries = 3): Promise<{
 }
 
 async function injectRecaptchaToken(page: Page, token: string) {
+  // Start listening for navigation BEFORE triggering submit
+  const navPromise = page.waitForNavigation({ waitUntil: "networkidle0", timeout: 60000 }).catch(() => {})
+
   await page.evaluate((tkn: string) => {
     const setVal = (sel: string) => { document.querySelectorAll(sel).forEach((el: any) => { el.value = tkn; el.innerHTML = tkn }) }
     setVal('textarea#g-recaptcha-response')
     setVal('textarea[name="g-recaptcha-response"]')
     setVal('textarea[name="g-recaptcha-response-100000"]')
 
-    // Try onSubmit callback (Google sorry page)
-    try {
-      if (typeof (window as any).onSubmit === 'function') {
-        (window as any).onSubmit(tkn)
-        return
-      }
-    } catch {}
+    // Click submit first (matching working sitecheck order)
+    const clickSubmit = () => {
+      const submit = document.querySelector('button[type="submit"], input[type="submit"], #submit, #recaptcha-verify-button')
+      if (submit) (submit as HTMLElement).click()
+    }
+    clickSubmit()
 
-    // Try submitCallback
-    try {
-      if (typeof (window as any).submitCallback === 'function') {
-        (window as any).submitCallback(tkn)
-        return
-      }
-    } catch {}
+    const form = document.querySelector("form")
+    if (form && typeof form.submit === "function") form.submit()
 
-    // Try grecaptcha callback
+    // Trigger callbacks WITHOUT token (matching working sitecheck — reads from textarea)
+    try { if (typeof (window as any).onSubmit === 'function') (window as any).onSubmit() } catch {}
     try {
       if (typeof (window as any).grecaptcha !== 'undefined') {
         const resp = (window as any).grecaptcha.getResponse()
-        if (resp) {
-          const submit = document.querySelector('button[type="submit"], input[type="submit"], #submit')
-          if (submit) { (submit as HTMLElement).click(); return }
-        }
+        if (!resp && (window as any).grecaptcha.execute) (window as any).grecaptcha.execute()
       }
     } catch {}
+  }, token).catch(() => {})
 
-    // Fallback: click submit then form.submit
-    const submit = document.querySelector('button[type="submit"], input[type="submit"], #submit, #recaptcha-verify-button')
-    if (submit) (submit as HTMLElement).click()
-    const form = document.querySelector("form")
-    if (form && typeof form.submit === "function") form.submit()
-  }, token)
-
-  await wait(2000)
+  // Wait for navigation to complete after token injection
+  await navPromise
+  await wait(3000)
 }
 
 async function solveRecaptchaV2(page: Page): Promise<boolean> {

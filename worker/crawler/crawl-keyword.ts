@@ -100,7 +100,17 @@ export async function crawlKeyword(
         } catch {}
 
         // Try solving captcha — like working sitecheck, always try after initial load
-        await solveCaptchaIfPresent(page)
+        const captchaSolved = await solveCaptchaIfPresent(page)
+
+        // If captcha was solved, wait for search results page to fully load
+        if (captchaSolved) {
+          try {
+            await page.waitForSelector('#rso, a[jsname="UWckNb"]', { timeout: 15000 })
+            await sleep(3000)
+          } catch {
+            await sleep(5000)
+          }
+        }
 
         // Crawl pages
         let allLinks: string[] = []
@@ -109,7 +119,15 @@ export async function crawlKeyword(
 
         while (allDomains.length < domainsTarget && pageNum <= MAX_PAGES) {
           // Proactively check for captcha on every page — like working sitecheck
-          await solveCaptchaIfPresent(page)
+          const pageCaptchaSolved = await solveCaptchaIfPresent(page)
+          if (pageCaptchaSolved) {
+            try {
+              await page.waitForSelector('#rso, a[jsname="UWckNb"]', { timeout: 15000 })
+              await sleep(3000)
+            } catch {
+              await sleep(5000)
+            }
+          }
 
           const { links, domains } = await extractSerpResults(page)
           allLinks = [...new Set([...allLinks, ...links])]
@@ -125,7 +143,12 @@ export async function crawlKeyword(
 
             await page.goto(new URL(href, page.url()).toString(), { waitUntil: "networkidle0", timeout: 120000 })
             // Solve captcha after navigating to next page
-            await solveCaptchaIfPresent(page)
+            const nextCaptchaSolved = await solveCaptchaIfPresent(page)
+            if (nextCaptchaSolved) {
+              try {
+                await page.waitForSelector('#rso, a[jsname="UWckNb"]', { timeout: 15000 })
+              } catch {}
+            }
             await sleep(3000)
           } catch { break }
 
