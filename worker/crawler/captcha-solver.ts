@@ -75,6 +75,14 @@ async function injectRecaptchaToken(page: Page, token: string) {
     setVal('textarea#g-recaptcha-response')
     setVal('textarea[name="g-recaptcha-response"]')
     setVal('textarea[name="g-recaptcha-response-100000"]')
+    // Google sorry page uses submitCallback via data-callback
+    try {
+      if (typeof (window as any).submitCallback === 'function') {
+        (window as any).submitCallback(tkn)
+        return
+      }
+    } catch {}
+
     const submit = document.querySelector('button[type="submit"], input[type="submit"], #submit, #recaptcha-verify-button')
     if (submit) (submit as HTMLElement).click()
     const form = document.querySelector("form")
