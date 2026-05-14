@@ -9,8 +9,8 @@ function getApiKey() { return process.env.TWO_CAPTCHA_API_KEY || "" }
 function isEnabled() { return process.env.TWO_CAPTCHA_ENABLED === "true" }
 
 async function request2Captcha(params: Record<string, string>): Promise<string> {
-  const url = `${IN_URL}?${new URLSearchParams(params).toString()}`
-  const res = await fetch(url)
+  const body = new URLSearchParams(params).toString()
+  const res = await fetch(IN_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body })
   const text = await res.text()
   let data: any
   try { data = JSON.parse(text) } catch {
@@ -114,9 +114,16 @@ async function solveRecaptchaV2(page: Page): Promise<boolean> {
   if (!isEnabled() || !getApiKey()) return false
 
   const ua = await page.evaluate(() => navigator.userAgent)
+  // Use the original search URL, not the long sorry page URL
+  let pageUrl = page.url()
+  try {
+    const u = new URL(pageUrl)
+    const continueUrl = u.searchParams.get("continue")
+    if (continueUrl) pageUrl = decodeURIComponent(continueUrl)
+  } catch {}
   const params: Record<string, string> = {
     key: getApiKey(), method: "userrecaptcha", googlekey: info.sitekey,
-    pageurl: page.url(), json: "1", userAgent: ua,
+    pageurl: pageUrl, json: "1", userAgent: ua,
   }
   if (info.isEnterprise) params.enterprise = "1"
   if (info.stoken) params["data-s"] = info.stoken
