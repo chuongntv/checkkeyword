@@ -2,7 +2,6 @@ import { BaseService } from "@/lib/services/base-service"
 import { KeywordList } from "@/models/keyword-list.model"
 import { CrawlJob } from "@/models/crawl-job.model"
 import { connectDB } from "@/lib/db/mongoose"
-import { resolveJobStatus } from "@/lib/services/crawl-job/resolve-job-status"
 
 type Input = { workspaceId: string }
 type Output = {
@@ -37,7 +36,7 @@ export class GetKeywordListsService extends BaseService<Input, Output> {
         countries: kl.countries,
         createdAt: kl.createdAt,
         latestCrawlJob: job
-          ? { id: job._id.toString(), status: await resolveJobStatus(job), createdAt: job.createdAt }
+          ? { id: job._id.toString(), status: job.status, createdAt: job.createdAt }
           : null,
       })
     }

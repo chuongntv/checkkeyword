@@ -79,17 +79,6 @@ export default function SiteConfigPage() {
                 max="500"
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Thời gian chờ tối đa (phút)</label>
-              <p className="text-xs text-muted-foreground">Crawl job vượt quá thời gian này sẽ hiển thị trạng thái "Quá hạn"</p>
-              <Input
-                type="number"
-                value={configs.jobTimeoutMinutes ?? ""}
-                onChange={(e) => setConfigs({ ...configs, jobTimeoutMinutes: e.target.value })}
-                min="1"
-                max="120"
-              />
-            </div>
           </CardContent>
         </Card>
 

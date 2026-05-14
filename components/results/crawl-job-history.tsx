@@ -17,7 +17,7 @@ export function CrawlJobHistory({ jobs, currentJobId, workspaceId, listId, onRet
       {jobs.map((job) => {
         const date = new Date(job.createdAt)
         const isActive = job.id === currentJobId
-        const canRetry = job.status === "done" || job.status === "failed" || job.status === "timeout"
+        const canRetry = job.status === "done" || job.status === "failed"
 
         return (
           <div

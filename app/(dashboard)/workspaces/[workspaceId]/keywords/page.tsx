@@ -207,14 +207,7 @@ export default function KeywordsPage({ params }: { params: Promise<{ workspaceId
                         <Button variant="outline" size="sm" onClick={() => openEdit(list)}>
                           <Pencil className="h-3 w-3 mr-1" />Sửa
                         </Button>
-                        {list.latestCrawlJob?.status === "timeout" ? (
-                          <Button
-                            variant="destructive" size="sm"
-                            onClick={() => handleTriggerCrawl(list.id, true)}
-                          >
-                            <Play className="h-3 w-3 mr-1" />Chạy lại
-                          </Button>
-                        ) : list.latestCrawlJob?.status === "pending" || list.latestCrawlJob?.status === "running" ? (
+                        {list.latestCrawlJob?.status === "pending" || list.latestCrawlJob?.status === "running" ? (
                           <Button
                             variant="outline" size="sm"
                             onClick={() => handleCancelJob(list.id, list.latestCrawlJob!.id)}
