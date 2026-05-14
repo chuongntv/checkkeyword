@@ -85,7 +85,26 @@ export async function crawlKeyword(
         try { await page.setUserAgent(getRandomUserAgent()) } catch {}
 
         await page.goto(googleUrl, { waitUntil: "networkidle2", timeout: 60000 })
-        await sleep(5000)
+        await sleep(3000)
+
+        // Handle Google consent page
+        try {
+          const acceptBtn = await page.$('button[aria-label*="Accept" i], button[aria-label*="agree" i], button[aria-label*="Tout accepter" i], #L2AGLb, .tHlp8d')
+          if (acceptBtn) {
+            await acceptBtn.click()
+            await sleep(2000)
+          }
+        } catch {}
+
+        // Handle Google "before you continue" dialog
+        try {
+          const dialogBtn = await page.$('button[aria-label*="Reject" i], button[aria-label*="refuse" i], div[role="button"][tabindex="0"]')
+          if (dialogBtn) {
+            await dialogBtn.click()
+            await sleep(2000)
+          }
+        } catch {}
+
         await solveCaptchaIfPresent(page)
 
         // Crawl pages
