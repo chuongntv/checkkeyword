@@ -9,8 +9,8 @@ function getApiKey() { return process.env.TWO_CAPTCHA_API_KEY || "" }
 function isEnabled() { return process.env.TWO_CAPTCHA_ENABLED === "true" }
 
 async function request2Captcha(params: Record<string, string>): Promise<string> {
-  const body = new URLSearchParams(params).toString()
-  const res = await fetch(IN_URL, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body })
+  const url = `${IN_URL}?${new URLSearchParams(params).toString()}`
+  const res = await fetch(url)
   const text = await res.text()
   let data: any
   try { data = JSON.parse(text) } catch {
@@ -21,7 +21,7 @@ async function request2Captcha(params: Record<string, string>): Promise<string> 
   return data.request
 }
 
-async function poll2Captcha(requestId: string, timeoutMs = 120000, intervalMs = 5000): Promise<string> {
+async function poll2Captcha(requestId: string, timeoutMs = 360000, intervalMs = 5000): Promise<string> {
   const started = Date.now()
   while (Date.now() - started < timeoutMs) {
     await wait(intervalMs)
@@ -44,7 +44,6 @@ async function getRecaptchaInfo(page: Page, retries = 3): Promise<{
 } | null> {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
-      // Check frames first
       const frames = page.frames()
       console.log(`[Captcha] getRecaptchaInfo attempt ${attempt + 1}: ${frames.length} frames`)
       for (const f of frames) {
@@ -62,7 +61,6 @@ async function getRecaptchaInfo(page: Page, retries = 3): Promise<{
         }
       }
 
-      // Check DOM
       const info = await page.evaluate(() => {
         const el = document.querySelector("[data-sitekey]")
         if (el) return {
@@ -101,76 +99,62 @@ async function getRecaptchaInfo(page: Page, retries = 3): Promise<{
 }
 
 async function injectRecaptchaToken(page: Page, token: string) {
-  // Set token values in textareas first
   await page.evaluate((tkn: string) => {
     const setVal = (sel: string) => { document.querySelectorAll(sel).forEach((el: any) => { el.value = tkn; el.innerHTML = tkn }) }
     setVal('textarea#g-recaptcha-response')
     setVal('textarea[name="g-recaptcha-response"]')
     setVal('textarea[name="g-recaptcha-response-100000"]')
-  }, token)
 
-  // Try submitCallback (Google sorry page uses data-callback="submitCallback")
-  const hasCallback = await page.evaluate((tkn: string) => {
+    // Try onSubmit callback (Google sorry page)
+    try {
+      if (typeof (window as any).onSubmit === 'function') {
+        (window as any).onSubmit(tkn)
+        return
+      }
+    } catch {}
+
+    // Try submitCallback
     try {
       if (typeof (window as any).submitCallback === 'function') {
         (window as any).submitCallback(tkn)
-        return true
+        return
       }
     } catch {}
-    return false
-  }, token)
 
-  if (hasCallback) {
+    // Try grecaptcha callback
     try {
-      await page.waitForNavigation({ waitUntil: "networkidle0", timeout: 30000 })
-      console.log(`[Captcha] Navigation after submitCallback to: ${page.url().slice(0, 80)}`)
-      return
-    } catch {
-      console.log(`[Captcha] submitCallback did not trigger navigation, trying form submit`)
-    }
-  }
-
-  // Fallback: click submit button
-  const submit = await page.$('input[type="submit"], button[type="submit"], #submit, #recaptcha-verify-button')
-  if (submit) {
-    try {
-      await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle0", timeout: 30000 }).catch(() => {}),
-        submit.click(),
-      ])
-      console.log(`[Captcha] Navigation after submit click to: ${page.url().slice(0, 80)}`)
-      return
+      if (typeof (window as any).grecaptcha !== 'undefined') {
+        const resp = (window as any).grecaptcha.getResponse()
+        if (resp) {
+          const submit = document.querySelector('button[type="submit"], input[type="submit"], #submit')
+          if (submit) { (submit as HTMLElement).click(); return }
+        }
+      }
     } catch {}
-  }
 
-  // Last resort: form.submit()
-  await page.evaluate(() => {
+    // Fallback: click submit then form.submit
+    const submit = document.querySelector('button[type="submit"], input[type="submit"], #submit, #recaptcha-verify-button')
+    if (submit) (submit as HTMLElement).click()
     const form = document.querySelector("form")
     if (form && typeof form.submit === "function") form.submit()
-  })
+  }, token)
+
+  await wait(2000)
 }
 
 async function solveRecaptchaV2(page: Page): Promise<boolean> {
-  // Wait for reCAPTCHA frames to load
   await wait(5000)
+  const pageUrl = page.url()
   const info = await getRecaptchaInfo(page)
   if (!info?.sitekey) {
     console.log(`[Captcha] reCAPTCHA sitekey not found after retries`)
     return false
   }
-  if (!isEnabled() || !getApiKey()) {
-    console.log(`[Captcha] 2Captcha not enabled (enabled=${isEnabled()}, hasKey=${!!getApiKey()})`)
-    return false
-  }
+  if (!isEnabled() || !getApiKey()) return false
 
-  console.log(`[Captcha] Found reCAPTCHA: sitekey=${info.sitekey}, enterprise=${info.isEnterprise}, invisible=${info.isInvisible}`)
+  console.log(`[Captcha] Found reCAPTCHA: sitekey=${info.sitekey}, enterprise=${info.isEnterprise}`)
 
   const ua = await page.evaluate(() => navigator.userAgent)
-  // Use the actual page URL (sorry page) where the reCAPTCHA is rendered
-  // 2Captcha verifies the solution against this URL's domain
-  const pageUrl = page.url()
-  console.log(`[Captcha] Sending to 2Captcha: pageurl=${pageUrl.slice(0, 100)}`)
-
   const params: Record<string, string> = {
     key: getApiKey(), method: "userrecaptcha", googlekey: info.sitekey,
     pageurl: pageUrl, json: "1", userAgent: ua,
@@ -179,14 +163,11 @@ async function solveRecaptchaV2(page: Page): Promise<boolean> {
   if (info.stoken) params["data-s"] = info.stoken
   if (info.isInvisible) params.invisible = "1"
 
-  console.log(`[Captcha] Requesting 2Captcha solution...`)
   const requestId = await request2Captcha(params)
-  console.log(`[Captcha] 2Captcha request ID: ${requestId}, polling for solution...`)
+  console.log(`[Captcha] 2Captcha request ID: ${requestId}, polling...`)
   const solution = await poll2Captcha(requestId)
-  console.log(`[Captcha] Solution received (${solution.length} chars), injecting token...`)
+  console.log(`[Captcha] Solution received, injecting token...`)
   await injectRecaptchaToken(page, solution)
-  await injectRecaptchaToken(page, solution)
-  await wait(3000)
   console.log(`[Captcha] Page URL after injection: ${page.url().slice(0, 100)}`)
   return true
 }
@@ -194,14 +175,11 @@ async function solveRecaptchaV2(page: Page): Promise<boolean> {
 async function solveImageCaptcha(page: Page): Promise<boolean> {
   if (!isEnabled() || !getApiKey()) return false
 
-  // Google sorry page uses specific selectors
   const handle = await page.$(
-    'img[src*="captcha"], img[src*="/sorry/"], img[src*="Captcha"], img[alt*="captcha" i], ' +
-    '#captcha_image img, .captcha_image img, form img[src*="data:image"]'
+    'img[src*="captcha"], img[src*="/sorry/"], img[src*="Captcha"], img[alt*="captcha" i], form img'
   )
   const inputHandle = await page.$(
-    'input[name="captcha"], input#captcha, input[name="g-recaptcha-response"], ' +
-    'input[name="answer"], input#captchainput, input[type="text"]'
+    'input[name="captcha"], input#captcha, input[name="g-recaptcha-response"], input[name="answer"]'
   )
   if (!handle || !inputHandle) {
     console.log(`[Captcha] Image captcha elements not found (img=${!!handle}, input=${!!inputHandle})`)
@@ -219,7 +197,6 @@ async function solveImageCaptcha(page: Page): Promise<boolean> {
   await inputHandle.focus()
   await page.keyboard.type(solution)
 
-  // Try clicking submit button first, then fallback to form submit
   const submitBtn = await page.$('input[type="submit"], button[type="submit"], #captcha_submit')
   if (submitBtn) {
     await Promise.all([

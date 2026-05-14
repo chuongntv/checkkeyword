@@ -8,5 +8,5 @@ const COUNTRY_PARAMS: Record<string, string> = {
 export function buildGoogleUrl(keyword: string, country: string): string {
   const q = keyword.split(" ").join("+")
   const params = COUNTRY_PARAMS[country] ?? ""
-  return `https://www.google.com/search?q=${q}&num=100${params ? "&" + params : ""}`
+  return `https://www.google.com/search?q=${q}${params ? "&" + params : ""}`
 }

@@ -8,8 +8,8 @@ import { CrawlerConfig } from "../../models/crawler-config.model"
 
 const DEFAULT_DOMAINS_TARGET = 100
 const MAX_PAGES = 30
-const MAX_RETRIES = 5
-const RETRY_DELAY = 30000
+const MAX_RETRIES = 30
+const RETRY_DELAY = 15000
 const CHROME_PATH = process.env.CHROME_PATH || "/usr/bin/google-chrome-stable"
 
 function sleep(ms: number) { return new Promise((r) => setTimeout(r, ms)) }
@@ -70,6 +70,7 @@ export async function crawlKeyword(
           customConfig: {
             chromePath: CHROME_PATH,
             ignoreDefaultFlags: false,
+            userDataDir: profile?.dir,
           },
           args: ["--no-sandbox", "--disable-setuid-sandbox", "--no-zygote", "--disable-gpu"],
           connectOption: { defaultViewport: null, protocolTimeout: 180000 },
@@ -87,7 +88,7 @@ export async function crawlKeyword(
 
         // Use networkidle0 like working sitecheck — ensures page fully loaded
         await page.goto(googleUrl, { waitUntil: "networkidle0", timeout: 120000 })
-        await sleep(30000)
+        await sleep(20000)
 
         // Handle Google consent page
         try {

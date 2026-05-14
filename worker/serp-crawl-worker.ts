@@ -5,9 +5,10 @@ import { connectDB } from "@/lib/db/mongoose"
 import { getRedis } from "@/lib/db/redis"
 import { crawlKeyword } from "./crawler/crawl-keyword"
 import { Types } from "mongoose"
+import { execSync } from "child_process"
 import pAll from "p-all"
 
-const KEYWORD_CONCURRENCY = 1
+const KEYWORD_CONCURRENCY = 3
 const JOB_TIMEOUT_MS = 60 * 60 * 1000 // 1 hour
 
 export function startSerpWorker() {
@@ -52,6 +53,9 @@ export function startSerpWorker() {
       })
 
       await pAll(tasks, { concurrency: KEYWORD_CONCURRENCY })
+
+      // Kill stale Xvfb processes after each batch
+      try { execSync("pkill -f Xvfb", { stdio: "ignore" }) } catch {}
 
       // Backfill previousPosition
       await backfillPreviousPosition(crawlJobId, workspaceId, keywordListId)
